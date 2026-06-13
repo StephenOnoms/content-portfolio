@@ -12,11 +12,11 @@
     <a class="doc-back" href="../../index.html#samples">&larr; back to portfolio</a>
     <p class="doc-eyebrow">Comparison · Roundup</p>
     <h1>5 Serverless Inference Platforms Worth Watching in 2026</h1>
-    <p class="doc-meta">~11 min read · Writing sample</p>
+    <p class="doc-meta">~16 min read · Writing sample</p>
 
     <p>The serverless inference market has moved fast enough that a provider list from even a year ago is already out of date. If you're choosing where to run open-weight models in 2026, the short answer is: <strong>there's no single "best" platform — the right pick depends on whether you care most about model breadth, raw price, developer control, or zero cold starts</strong>, because the providers below have deliberately specialized rather than converged on one model.</p>
 
-    <p>Here's a practical look at five platforms worth evaluating, what each is actually optimized for, and how to think about choosing between them.</p>
+    <p>Here's a practical look at five platforms worth evaluating, what each is actually optimized for, where each one falls short, and how to think about choosing between them — plus a few more worth knowing about even if they didn't make the main five.</p>
 
     <div class="takeaways">
       <p class="callout-label">Key Takeaways</p>
@@ -33,22 +33,187 @@
     <h2>What "Serverless Inference" Actually Means Here</h2>
     <p>Every platform in this roundup removes the need to provision and manage your own GPU servers — you call an API (or deploy a function), and the platform handles loading the model, allocating GPU capacity, and scaling. Where they differ is <em>how much of the model catalog is pre-built for you</em>, <em>how pricing is structured</em>, and <em>how much custom code you can run</em>.</p>
 
+    <h2>How We Evaluated These Platforms</h2>
+    <p>Rather than rank by a single "best overall" score — which tends to hide the trade-offs that actually matter — each platform below is assessed against four criteria:</p>
+    <ul>
+      <li><strong>Model catalog breadth:</strong> how many open-weight models are available out of the box, and how quickly new releases get added.</li>
+      <li><strong>Pricing predictability:</strong> how easy it is to forecast a monthly bill before you've sent a single request.</li>
+      <li><strong>Developer control:</strong> how much you can customize the serving environment versus working within a fixed API.</li>
+      <li><strong>Ecosystem fit:</strong> how well the platform integrates with tools and workflows teams are already using (Hugging Face, LangChain, OpenAI-compatible SDKs, etc).</li>
+    </ul>
+    <p>No platform scores highly on all four — and that's the point. The "best" platform is the one whose strengths line up with what your team actually needs most.</p>
+
     <h2>The Five Platforms</h2>
 
     <h3>1. Featherless</h3>
-    <p>Featherless positions itself around breadth: a very large catalog of open-weight models (in the thousands), available through a single OpenAI-compatible API, priced on a flat-rate/concurrency basis rather than per token. For teams that want to try multiple open-weight models — or switch between them — without negotiating a new price per model, this removes a lot of friction. The trade-off is the same as any flat-rate model: at very low usage, you may be paying for capacity headroom you're not using.</p>
+    <p>Featherless positions itself around breadth: a very large catalog of open-weight models (in the thousands), available through a single OpenAI-compatible API, priced on a flat-rate/concurrency basis rather than per token. For teams that want to try multiple open-weight models — or switch between them — without negotiating a new price per model, this removes a lot of friction.</p>
+
+    <figure>
+      <svg viewBox="0 0 700 230" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Concept diagram of a model-catalog homepage with flat-rate pricing badge">
+        <rect width="700" height="230" fill="#12161F" stroke="#232938"/>
+        <rect width="700" height="30" fill="#1A2030"/>
+        <circle cx="18" cy="15" r="5" fill="#5B6376"/><circle cx="34" cy="15" r="5" fill="#5B6376"/><circle cx="50" cy="15" r="5" fill="#5B6376"/>
+        <rect x="80" y="7" width="240" height="16" rx="3" fill="#0B0E14"/>
+        <text x="90" y="18" font-family="IBM Plex Mono, monospace" font-size="10" fill="#8B92A5">platform.ai/models</text>
+        <text x="24" y="55" font-family="IBM Plex Mono, monospace" font-size="13" fill="#E6E9EF">6,000+ open-weight models</text>
+        <rect x="24" y="68" width="90" height="14" rx="7" fill="#E3B341" opacity="0.15"/>
+        <text x="34" y="78" font-family="IBM Plex Mono, monospace" font-size="10" fill="#E3B341">flat-rate plan</text>
+        <g font-family="IBM Plex Mono, monospace" font-size="9" fill="#5B6376">
+          <rect x="24" y="96" width="100" height="48" rx="4" fill="#1A2030" stroke="#232938"/><text x="32" y="124">Llama</text>
+          <rect x="134" y="96" width="100" height="48" rx="4" fill="#1A2030" stroke="#232938"/><text x="142" y="124">Qwen</text>
+          <rect x="244" y="96" width="100" height="48" rx="4" fill="#1A2030" stroke="#232938"/><text x="252" y="124">Mistral</text>
+          <rect x="354" y="96" width="100" height="48" rx="4" fill="#1A2030" stroke="#232938"/><text x="362" y="124">DeepSeek</text>
+          <rect x="464" y="96" width="100" height="48" rx="4" fill="#1A2030" stroke="#232938"/><text x="472" y="124">RWKV</text>
+          <rect x="574" y="96" width="102" height="48" rx="4" fill="#1A2030" stroke="#232938" stroke-dasharray="3 3"/><text x="582" y="124">+5,995</text>
+        </g>
+        <text x="24" y="180" font-family="IBM Plex Mono, monospace" font-size="10" fill="#5B6376">Single OpenAI-compatible endpoint across the full catalog</text>
+      </svg>
+      <figcaption>Fig 1. Concept layout: catalog breadth and flat-rate pricing as the primary homepage message.</figcaption>
+    </figure>
+
+    <ul>
+      <li><strong>Pros:</strong> enormous model selection, predictable monthly cost regardless of which models you call, OpenAI-compatible API simplifies migration.</li>
+      <li><strong>Cons:</strong> flat-rate pricing means very low-traffic projects may pay for headroom they don't use; less suited to teams wanting per-second billing transparency.</li>
+      <li><strong>Good fit if:</strong> you're building something that needs to evaluate or serve many different open models, or you want budget predictability from day one.</li>
+      <li><strong>Probably not for you if:</strong> you have extremely low, sporadic traffic and want to pay literally nothing between requests.</li>
+    </ul>
 
     <h3>2. Together AI</h3>
-    <p>Together AI offers an OpenAI-compatible serverless API with per-token pricing that varies by model, plus dedicated endpoints (hourly GPU rental) and fine-tuning pipelines for teams that outgrow shared infrastructure. It's a strong fit if your workload is read-heavy on a small number of well-supported open models and you want the option to "graduate" to dedicated capacity without switching providers.</p>
+    <p>Together AI offers an OpenAI-compatible serverless API with per-token pricing that varies by model, plus dedicated endpoints (hourly GPU rental) and fine-tuning pipelines for teams that outgrow shared infrastructure.</p>
+
+    <figure>
+      <svg viewBox="0 0 700 230" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Concept diagram of an API-first homepage with code sample and per-token pricing">
+        <rect width="700" height="230" fill="#12161F" stroke="#232938"/>
+        <rect width="700" height="30" fill="#1A2030"/>
+        <circle cx="18" cy="15" r="5" fill="#5B6376"/><circle cx="34" cy="15" r="5" fill="#5B6376"/><circle cx="50" cy="15" r="5" fill="#5B6376"/>
+        <rect x="80" y="7" width="240" height="16" rx="3" fill="#0B0E14"/>
+        <text x="90" y="18" font-family="IBM Plex Mono, monospace" font-size="10" fill="#8B92A5">platform.ai/docs</text>
+        <rect x="24" y="48" width="330" height="130" rx="4" fill="#1A2030" stroke="#232938"/>
+        <text x="36" y="68" font-family="IBM Plex Mono, monospace" font-size="10" fill="#6E9FE3">POST /v1/chat/completions</text>
+        <text x="36" y="88" font-family="IBM Plex Mono, monospace" font-size="9" fill="#5B6376">{ "model": "meta-llama/...",</text>
+        <text x="36" y="104" font-family="IBM Plex Mono, monospace" font-size="9" fill="#5B6376">  "messages": [...] }</text>
+        <text x="36" y="130" font-family="IBM Plex Mono, monospace" font-size="9" fill="#5FB378">→ 200 OK</text>
+        <rect x="376" y="48" width="300" height="60" rx="4" fill="#1A2030" stroke="#232938"/>
+        <text x="388" y="70" font-family="IBM Plex Mono, monospace" font-size="10" fill="#E6E9EF">Per-token pricing</text>
+        <text x="388" y="90" font-family="IBM Plex Mono, monospace" font-size="9" fill="#5B6376">$ / million tokens, by model</text>
+        <rect x="376" y="118" width="300" height="60" rx="4" fill="#1A2030" stroke="#232938"/>
+        <text x="388" y="140" font-family="IBM Plex Mono, monospace" font-size="10" fill="#E6E9EF">Dedicated endpoints</text>
+        <text x="388" y="160" font-family="IBM Plex Mono, monospace" font-size="9" fill="#5B6376">$ / GPU-hour, reserved or on-demand</text>
+      </svg>
+      <figcaption>Fig 2. Concept layout: API-first positioning with per-token and dedicated pricing side by side.</figcaption>
+    </figure>
+
+    <ul>
+      <li><strong>Pros:</strong> OpenAI-compatible API eases migration; clear upgrade path from serverless to dedicated as traffic grows; fine-tuning support under the same account.</li>
+      <li><strong>Cons:</strong> per-token rates vary by model, so "switching models" can mean re-pricing your workload; dedicated endpoints require capacity planning.</li>
+      <li><strong>Good fit if:</strong> you've settled on one or two models and want a clear path from prototype to dedicated capacity without changing providers.</li>
+      <li><strong>Probably not for you if:</strong> you need a single flat price across a very wide range of models.</li>
+    </ul>
 
     <h3>3. Replicate</h3>
-    <p>Replicate's strength is removing deployment work entirely for popular models — its "Official Models" program offers fixed, output-based pricing for well-known models with no cold-start billing surprises. This convenience comes at a price premium versus raw GPU-hour costs on other platforms, which makes Replicate a good fit for prototyping and smaller-scale production, less so for high-volume workloads where the per-call premium adds up.</p>
+    <p>Replicate's strength is removing deployment work entirely for popular models — its "Official Models" program offers fixed, output-based pricing for well-known models with no cold-start billing surprises.</p>
+
+    <figure>
+      <svg viewBox="0 0 700 230" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Concept diagram of a model-gallery homepage with official models badge">
+        <rect width="700" height="230" fill="#12161F" stroke="#232938"/>
+        <rect width="700" height="30" fill="#1A2030"/>
+        <circle cx="18" cy="15" r="5" fill="#5B6376"/><circle cx="34" cy="15" r="5" fill="#5B6376"/><circle cx="50" cy="15" r="5" fill="#5B6376"/>
+        <rect x="80" y="7" width="240" height="16" rx="3" fill="#0B0E14"/>
+        <text x="90" y="18" font-family="IBM Plex Mono, monospace" font-size="10" fill="#8B92A5">platform.ai/explore</text>
+        <text x="24" y="55" font-family="IBM Plex Mono, monospace" font-size="13" fill="#E6E9EF">Run a model with one API call</text>
+        <g font-family="IBM Plex Mono, monospace" font-size="9" fill="#5B6376">
+          <rect x="24" y="70" width="150" height="80" rx="4" fill="#1A2030" stroke="#5FB378"/>
+          <text x="34" y="90" fill="#5FB378">Official Model</text>
+          <text x="34" y="110">Output-based price</text>
+          <text x="34" y="128">No cold-start fee</text>
+
+          <rect x="186" y="70" width="150" height="80" rx="4" fill="#1A2030" stroke="#232938"/>
+          <text x="196" y="90">Community model</text>
+          <text x="196" y="110">Per-second billing</text>
+
+          <rect x="348" y="70" width="150" height="80" rx="4" fill="#1A2030" stroke="#232938"/>
+          <text x="358" y="90">Community model</text>
+          <text x="358" y="110">Per-second billing</text>
+
+          <rect x="510" y="70" width="166" height="80" rx="4" fill="#1A2030" stroke="#232938" stroke-dasharray="3 3"/>
+          <text x="520" y="90">Browse all →</text>
+        </g>
+      </svg>
+      <figcaption>Fig 3. Concept layout: gallery-style browsing with "Official Models" highlighted for predictable pricing.</figcaption>
+    </figure>
+
+    <ul>
+      <li><strong>Pros:</strong> fastest path from "I found a model" to "I'm calling it in production"; predictable per-output pricing on Official Models removes a whole class of billing surprises.</li>
+      <li><strong>Cons:</strong> convenience carries a price premium versus raw GPU-hour costs elsewhere; community models still bill per-second, including cold starts.</li>
+      <li><strong>Good fit if:</strong> you're prototyping, shipping a smaller-scale production feature, or want to avoid writing any deployment code at all.</li>
+      <li><strong>Probably not for you if:</strong> you're running high-volume traffic where the per-call convenience premium adds up significantly over raw infrastructure cost.</li>
+    </ul>
 
     <h3>4. Hugging Face Inference Endpoints</h3>
-    <p>For teams already working from the Hugging Face Hub, Inference Endpoints offers a more traditional instance-based hosting model — you choose hardware, and HF manages the deployment of (in principle) any model on the Hub. This suits production workloads with consistent traffic where the predictability of instance-based billing is preferable to usage-based pricing.</p>
+    <p>For teams already working from the Hugging Face Hub, Inference Endpoints offers a more traditional instance-based hosting model — you choose hardware, and HF manages the deployment of (in principle) any model on the Hub.</p>
+
+    <figure>
+      <svg viewBox="0 0 700 230" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Concept diagram of an instance configuration panel">
+        <rect width="700" height="230" fill="#12161F" stroke="#232938"/>
+        <rect width="700" height="30" fill="#1A2030"/>
+        <circle cx="18" cy="15" r="5" fill="#5B6376"/><circle cx="34" cy="15" r="5" fill="#5B6376"/><circle cx="50" cy="15" r="5" fill="#5B6376"/>
+        <rect x="80" y="7" width="240" height="16" rx="3" fill="#0B0E14"/>
+        <text x="90" y="18" font-family="IBM Plex Mono, monospace" font-size="10" fill="#8B92A5">platform.ai/endpoints/new</text>
+        <text x="24" y="55" font-family="IBM Plex Mono, monospace" font-size="13" fill="#E6E9EF">Create a new endpoint</text>
+        <g font-family="IBM Plex Mono, monospace" font-size="9" fill="#8B92A5">
+          <rect x="24" y="70" width="320" height="28" rx="4" fill="#1A2030" stroke="#232938"/><text x="34" y="88">Model: org/model-name (from Hub)</text>
+          <rect x="24" y="106" width="320" height="28" rx="4" fill="#1A2030" stroke="#232938"/><text x="34" y="124">Hardware: GPU · 1x A10G</text>
+          <rect x="24" y="142" width="320" height="28" rx="4" fill="#1A2030" stroke="#232938"/><text x="34" y="160">Region: us-east-1</text>
+          <rect x="24" y="178" width="320" height="28" rx="4" fill="#1A2030" stroke="#232938"/><text x="34" y="196">Autoscaling: 0 – 3 replicas</text>
+        </g>
+        <rect x="376" y="70" width="300" height="136" rx="4" fill="#1A2030" stroke="#232938"/>
+        <text x="388" y="92" font-family="IBM Plex Mono, monospace" font-size="10" fill="#6E9FE3">Billing: per instance-hour</text>
+        <text x="388" y="114" font-family="IBM Plex Mono, monospace" font-size="9" fill="#5B6376">Pause endpoint to stop billing</text>
+        <text x="388" y="134" font-family="IBM Plex Mono, monospace" font-size="9" fill="#5B6376">Scale-to-zero supported</text>
+      </svg>
+      <figcaption>Fig 4. Concept layout: configuration-driven instance setup, billed per instance-hour.</figcaption>
+    </figure>
+
+    <ul>
+      <li><strong>Pros:</strong> works with effectively any model on the Hub, not just a curated catalog; familiar to teams already using HF tooling for training/fine-tuning.</li>
+      <li><strong>Cons:</strong> instance-based billing means you're paying for the instance whether or not it's fully utilized, unless scale-to-zero is configured and cold starts are acceptable.</li>
+      <li><strong>Good fit if:</strong> your model is already on the Hub, your team is HF-native, and you want production hosting without leaving that ecosystem.</li>
+      <li><strong>Probably not for you if:</strong> you want usage-based pricing with no instance-management decisions at all.</li>
+    </ul>
 
     <h3>5. Modal</h3>
-    <p>Modal is the choice for teams that want to write and deploy their own Python-based serving code rather than rely on a pre-built model catalog, billed by the second of GPU time used. It offers the most flexibility of the five — at the cost of needing to build and maintain your own serving logic, including managing cold-start behaviour (e.g. caching model weights on persistent storage) yourself.</p>
+    <p>Modal is the choice for teams that want to write and deploy their own Python-based serving code rather than rely on a pre-built model catalog, billed by the second of GPU time used.</p>
+
+    <figure>
+      <svg viewBox="0 0 700 230" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Concept diagram of a code editor with deploy action and per-second billing">
+        <rect width="700" height="230" fill="#12161F" stroke="#232938"/>
+        <rect width="700" height="30" fill="#1A2030"/>
+        <circle cx="18" cy="15" r="5" fill="#5B6376"/><circle cx="34" cy="15" r="5" fill="#5B6376"/><circle cx="50" cy="15" r="5" fill="#5B6376"/>
+        <rect x="80" y="7" width="240" height="16" rx="3" fill="#0B0E14"/>
+        <text x="90" y="18" font-family="IBM Plex Mono, monospace" font-size="10" fill="#8B92A5">platform.ai/app/my-app</text>
+        <rect x="24" y="48" width="420" height="158" rx="4" fill="#1A2030" stroke="#232938"/>
+        <text x="36" y="70" font-family="IBM Plex Mono, monospace" font-size="9" fill="#D9789C">@app.function(gpu="A100")</text>
+        <text x="36" y="88" font-family="IBM Plex Mono, monospace" font-size="9" fill="#6E9FE3">def generate(prompt: str):</text>
+        <text x="48" y="106" font-family="IBM Plex Mono, monospace" font-size="9" fill="#5B6376">model = load_model()</text>
+        <text x="48" y="124" font-family="IBM Plex Mono, monospace" font-size="9" fill="#5B6376">return model.run(prompt)</text>
+        <rect x="36" y="150" width="90" height="24" rx="4" fill="#E3B341" opacity="0.15"/>
+        <text x="46" y="166" font-family="IBM Plex Mono, monospace" font-size="9" fill="#E3B341">modal deploy</text>
+        <rect x="464" y="48" width="212" height="60" rx="4" fill="#1A2030" stroke="#232938"/>
+        <text x="476" y="70" font-family="IBM Plex Mono, monospace" font-size="10" fill="#E6E9EF">Billing: per-second</text>
+        <text x="476" y="90" font-family="IBM Plex Mono, monospace" font-size="9" fill="#5B6376">GPU time only</text>
+        <rect x="464" y="118" width="212" height="60" rx="4" fill="#1A2030" stroke="#232938"/>
+        <text x="476" y="140" font-family="IBM Plex Mono, monospace" font-size="10" fill="#E6E9EF">Storage volumes</text>
+        <text x="476" y="160" font-family="IBM Plex Mono, monospace" font-size="9" fill="#5B6376">cache weights, reduce cold starts</text>
+      </svg>
+      <figcaption>Fig 5. Concept layout: code-first deployment with per-second GPU billing.</figcaption>
+    </figure>
+
+    <ul>
+      <li><strong>Pros:</strong> maximum flexibility — custom batching, multi-step pipelines, any model format; pay only for active GPU seconds.</li>
+      <li><strong>Cons:</strong> you own the serving code, including cold-start mitigation (e.g. caching weights on persistent volumes); steepest learning curve of the five.</li>
+      <li><strong>Good fit if:</strong> your use case genuinely needs custom serving logic that a pre-built API can't express.</li>
+      <li><strong>Probably not for you if:</strong> you'd rather not write or maintain serving infrastructure at all.</li>
+    </ul>
 
     <h2>How They Compare</h2>
 
@@ -101,6 +266,15 @@
       <p>Pricing for the same underlying model can vary several-fold across these platforms, and the cheapest option shifts as new models and providers launch. Treat any pricing comparison — including this one — as a starting point for your own benchmark, not a final answer. Re-check before committing to a provider for a production workload.</p>
     </div>
 
+    <h2>Honorable Mentions</h2>
+    <p>The market is bigger than five providers, and a few others are worth knowing about even though they didn't make the main comparison:</p>
+    <ul>
+      <li><strong>Fireworks AI</strong> — another OpenAI-compatible, per-token platform with a focus on fast inference for popular open models; worth comparing against Together AI for the same workloads.</li>
+      <li><strong>Groq</strong> — runs models on custom LPU hardware rather than GPUs, with a focus on very low-latency token generation; a strong option when generation speed itself is the priority, though model selection is narrower.</li>
+      <li><strong>Baseten</strong> — positions itself between Modal's full code control and Replicate's pre-built convenience, with a model deployment workflow aimed at production ML teams.</li>
+      <li><strong>RunPod</strong> — primarily a budget-focused serverless GPU provider; relevant if raw GPU-hour cost is the dominant factor and you're comfortable with a more infrastructure-first workflow.</li>
+    </ul>
+
     <h2>How to Choose</h2>
     <p>In short, the decision usually comes down to one dominant constraint:</p>
     <ul>
@@ -111,10 +285,20 @@
       <li><strong>If you need full control over serving logic</strong> (custom batching, unusual model formats, multi-step pipelines) — Modal's code-first model is hard to beat, provided you can absorb the ops overhead.</li>
     </ul>
 
+    <h2>FAQ</h2>
+    <h3>Can I use more than one of these platforms at once?</h3>
+    <p>Yes, and many production teams do — for example, using a breadth-first platform for experimentation and a per-token or dedicated platform for the one or two models that make it to production. The OpenAI-compatible API pattern shared by several of these platforms makes it relatively straightforward to route different workloads to different providers.</p>
+
+    <h3>Is the cheapest provider always the best choice?</h3>
+    <p>Not necessarily. Headline price differences are often smaller than the cost of engineering time spent integrating, monitoring, and maintaining a more complex setup. For early-stage products especially, the platform that gets you to production fastest can be the better economic choice even at a higher per-token rate.</p>
+
+    <h3>How often should I re-evaluate this comparison?</h3>
+    <p>Roughly quarterly. New models, pricing changes, and new entrants happen often enough in this market that a comparison done a year ago may no longer reflect the best option for your workload — even if your workload itself hasn't changed.</p>
+
     <h2>Final Thoughts</h2>
     <p>None of these platforms are "winning" in an absolute sense — they're specializing. The practical move for most teams isn't picking one provider forever, but matching workload to provider: a breadth-first platform for experimentation, a per-token or dedicated option once a model proves out, and possibly a code-first platform for anything genuinely custom. Build with that flexibility in mind from day one, and revisit the comparison every couple of quarters — this market moves fast enough that it's worth it.</p>
 
-    <p class="spec-note">Unsolicited writing sample created for portfolio purposes. Provider details summarized from public information as of 2026 and may have changed; verify current pricing and features directly with each provider before making decisions.</p>
+    <p class="spec-note">Unsolicited writing sample created for portfolio purposes. Provider details summarized from public information as of 2026 and may have changed; diagrams are illustrative concept layouts, not screenshots of real interfaces. Verify current pricing and features directly with each provider before making decisions.</p>
   </div>
 </body>
 </html>

@@ -12,33 +12,33 @@
     <a class="doc-back" href="../../index.html#samples">&larr; back to portfolio</a>
     <p class="doc-eyebrow">Explainer · TOFU</p>
     <h1>LLM Inference Cost, Explained: What You're Actually Paying For</h1>
-    <p class="doc-meta">~8 min read · Writing sample</p>
+    <p class="doc-meta">~13 min read · Writing sample</p>
 
     <p>If you've stared at an AI provider's pricing page and felt your eyes glaze over at "per-million-token," "concurrency-based," and "cold start," here's the short version: <strong>you're not paying for the model — you're paying for the compute it takes to run it, for as long as it's running, at whatever rate the provider has decided to package that compute into.</strong> Everything else on the pricing page is just a different way of slicing that same underlying cost.</p>
 
-    <p>This guide breaks down where inference cost actually comes from, the three pricing models you'll run into, and how to estimate what a given workload will cost before you commit to a provider.</p>
+    <p>This guide breaks down where inference cost actually comes from, the three pricing models you'll run into, a worked example showing how the "right" choice can flip as you scale, and the mistakes that most commonly blow up a team's AI bill.</p>
 
     <div class="takeaways">
       <p class="callout-label">Key Takeaways</p>
       <ul>
         <li><strong>Inference is an ongoing cost, not a one-time cost.</strong> Training happens once; inference happens every time someone uses your product.</li>
-        <li><strong>Four things drive cost:</strong> model size, GPU utilization (batching), token volume, and idle/cold-start time.</li>
+        <li><strong>Five things drive cost:</strong> model size, GPU utilization (batching), token volume, idle/cold-start time, and networking/multi-tenancy overhead.</li>
         <li><strong>Three pricing models dominate:</strong> per-token, flat-rate/concurrency, and per-instance (hourly GPU rental) — each suits a different traffic pattern.</li>
         <li><strong>Output tokens usually cost more than input tokens</strong>, because generating text is more compute-intensive than reading it.</li>
-        <li><strong>Open-weight models on serverless platforms</strong> can dramatically cut costs versus renting and managing your own GPUs, especially for spiky or unpredictable traffic.</li>
+        <li><strong>The cheapest option at launch is often not the cheapest option at 10x scale</strong> — the worked example below shows why.</li>
       </ul>
     </div>
 
     <h2>Inference vs. Training: Two Very Different Costs</h2>
     <p>Training a model is a one-time (or occasional) capital cost — you spend a large amount of compute up front to produce a set of weights. Inference is what happens every single time that model is asked to do something afterward: read a prompt, generate a response, return an answer.</p>
     <p>Think of training as building a factory, and inference as the cost of running the production line for every order that comes in. A more efficient factory design (a smaller, better-optimized model) lowers your per-order cost — but you still pay <em>something</em> for every order, forever, as long as the product is in use.</p>
-    <p>This is why inference cost — not training cost — is what shows up on your monthly bill once a product has real users. It's also why it's the number that matters most when you're choosing an AI provider.</p>
+    <p>This is why inference cost — not training cost — is what shows up on your monthly bill once a product has real users. It's also why it's the number that matters most when you're choosing an AI provider, and why teams that obsess over training costs (or which "frontier model" to use) sometimes get blindsided by their inference bill six months after launch.</p>
 
     <h2>What Actually Drives Inference Cost</h2>
 
     <h3>1. Model Size and Architecture</h3>
     <p>Larger models (more parameters) need more GPU memory and more compute per token generated, which directly increases cost per request. This is why providers often offer a range of model sizes — a smaller model that's "good enough" for a given task can cut costs significantly without much quality loss for that specific use case.</p>
-    <p>Architecture matters too. Newer attention-efficient designs and techniques like quantization (running a model at lower numerical precision) can reduce memory footprint and increase throughput, lowering cost per token without changing the model's parameter count.</p>
+    <p>Architecture matters too. Newer attention-efficient designs and techniques like quantization (running a model at lower numerical precision — e.g. 8-bit or 4-bit instead of 16-bit) can reduce memory footprint and increase throughput, lowering cost per token without changing the model's parameter count. The trade-off is usually a small, task-dependent quality loss, which is why it's worth testing quantized variants on your actual use case rather than assuming the "full precision" model is required.</p>
 
     <h3>2. GPU Utilization and Batching</h3>
     <p>A GPU sitting idle costs the same as a GPU doing useful work — the difference is just whether anyone's paying for that work. <strong>Batching</strong> — processing multiple requests together on the same GPU — is the single biggest lever providers have for reducing cost per request, because it spreads the fixed cost of "having a GPU warmed up and ready" across many requests instead of one.</p>
@@ -82,6 +82,14 @@
     <p>If a provider keeps a model "warm" (loaded into GPU memory, ready to respond instantly), someone is paying for that GPU time even when no requests are coming in. If instead the model is loaded on demand, the first request after a period of inactivity has to wait for the model to load — a "cold start," which can range from sub-second to tens of seconds depending on model size and the provider's optimization.</p>
     <p>This is the core trade-off behind most pricing models: pay for guaranteed warm capacity (predictable cost, no cold starts, but you pay even when idle), or pay only for active use (lower cost for spiky traffic, but with occasional cold-start latency).</p>
 
+    <h3>5. Networking and Multi-Tenancy Overhead</h3>
+    <p>This one is easy to miss because it rarely appears as its own line item. Two things to watch:</p>
+    <ul>
+      <li><strong>Data egress and transfer.</strong> If your application sends large context payloads (long documents, retrieved chunks, images) on every request, some platforms charge separately for data transfer, especially across regions. At high volume this can rival the token cost itself.</li>
+      <li><strong>Noisy-neighbor effects on shared infrastructure.</strong> On heavily multi-tenant serverless platforms, your request may occasionally queue behind someone else's burst of traffic. This doesn't usually show up as a direct cost, but it shows up as latency variance — which becomes a cost if it pushes you toward over-provisioning "just in case."</li>
+    </ul>
+    <p>Neither of these will dominate your bill the way model size or token volume will, but both are the kind of thing that turns "the estimate was close" into "the estimate was off by 20%."</p>
+
     <h2>The Three Main Pricing Models</h2>
     <p>Almost every inference provider's pricing falls into one of three buckets. Here's how they compare:</p>
 
@@ -119,6 +127,30 @@
 
     <p>In short: <strong>per-token suits unpredictable or low-volume traffic, flat-rate suits steady or experimental workloads where predictability matters more than perfect efficiency, and per-instance suits teams with enough scale and ops capacity to justify managing infrastructure directly.</strong></p>
 
+    <h2>A Worked Example: Support Bot at Two Scales</h2>
+    <p>Numbers make this concrete. Take a customer support assistant with the following profile:</p>
+    <ul>
+      <li>Average conversation: <strong>3 turns</strong></li>
+      <li>Per turn: <strong>1,200 input tokens</strong> (system prompt + conversation history + retrieved help-centre articles) and <strong>300 output tokens</strong></li>
+      <li>Illustrative per-token rate for a mid-size open-weight model: <strong>$0.20 per million input tokens, $0.80 per million output tokens</strong></li>
+      <li>Illustrative flat-rate plan: <strong>$99/month</strong> for a tier that comfortably covers low-to-moderate concurrent traffic</li>
+    </ul>
+
+    <h3>Scale 1: 2,000 conversations/day (early-stage product)</h3>
+    <p>6,000 turns/day → 7.2M input tokens/day and 1.8M output tokens/day.</p>
+    <p>Per-token cost: (7.2 × $0.20) + (1.8 × $0.80) = $1.44 + $1.44 = <strong>$2.88/day</strong>, or roughly <strong>$86/month</strong> at 30 days.</p>
+    <p>At this scale, the $99/month flat-rate plan is <em>more expensive</em> than per-token pricing — assuming your peak concurrency doesn't require guaranteeing capacity beyond what occasional per-token queuing could handle. <strong>Per-token wins here.</strong></p>
+
+    <h3>Scale 2: 20,000 conversations/day (post product-market fit)</h3>
+    <p>60,000 turns/day → 72M input tokens/day and 18M output tokens/day.</p>
+    <p>Per-token cost: (72 × $0.20) + (18 × $0.80) = $14.40 + $14.40 = <strong>$28.80/day</strong>, or roughly <strong>$864/month</strong>.</p>
+    <p>Now compare to a higher flat-rate tier — say $399/month for a tier with enough concurrency to handle this volume comfortably. <strong>Flat-rate now wins by a wide margin</strong>, because the fixed cost of guaranteed capacity is being amortized across 10x the requests.</p>
+
+    <div class="callout">
+      <p class="callout-label">Pro tip</p>
+      <p>This is the entire reason "re-run your estimate at 10x" matters. The crossover point between per-token and flat-rate pricing isn't a detail — it's often the single biggest lever in your AI infrastructure budget, and it's easy to miss if you only price out your <em>current</em> traffic.</p>
+    </div>
+
     <h2>How to Estimate Your Own Inference Costs</h2>
     <p>Before comparing providers, get a rough number for your own workload:</p>
     <ol>
@@ -126,8 +158,29 @@
       <li><strong>Estimate requests per day</strong> at expected usage, plus a reasonable peak multiplier (2-5x average is common for consumer products).</li>
       <li><strong>Multiply by the provider's per-token rate</strong> (remembering output tokens are usually priced higher) to get a per-token-model estimate.</li>
       <li><strong>Separately, check what concurrency level</strong> a flat-rate plan would need to support your peak — this tells you whether flat-rate pricing would be cheaper at your scale.</li>
-      <li><strong>Re-run the estimate at 3x and 10x your current scale.</strong> The model that's cheapest today isn't always the one that's cheapest after growth — this is the single most common mistake teams make when picking a provider early.</li>
+      <li><strong>Re-run the estimate at 3x and 10x your current scale.</strong> As the worked example shows, the model that's cheapest today isn't always the one that's cheapest after growth.</li>
     </ol>
+
+    <h2>Common Pitfalls That Blow Up AI Bills</h2>
+    <ul>
+      <li><strong>Forgetting system prompt overhead.</strong> A 500-token system prompt sent on every single request, across thousands of requests, adds up to a real cost — even though no individual request "feels" expensive.</li>
+      <li><strong>Agent loops and retries.</strong> An agent that calls a model multiple times per task (planning, tool use, self-correction) can easily generate 5-10x the tokens of a single-shot request. Budget for the loop, not the final answer.</li>
+      <li><strong>Pricing the average instead of the peak.</strong> Flat-rate plans are sized to peak concurrency, not average traffic — sizing based on average usage is the most common reason teams get an unpleasant surprise during a traffic spike.</li>
+      <li><strong>Comparing sticker prices across different model sizes.</strong> A "cheaper per token" rate on a larger model can cost more overall than a slightly pricier rate on a smaller model that's still good enough for the task.</li>
+    </ul>
+
+    <h2>FAQ</h2>
+    <h3>Is inference always more expensive than training, over time?</h3>
+    <p>For any product with meaningful usage, yes — eventually. Training is a one-time cost; inference scales with every user interaction. A model that costs very little to train but is expensive per inference call can still end up costing more in total over a year of production traffic.</p>
+
+    <h3>Does quantization always hurt quality?</h3>
+    <p>It can, but the impact is highly task-dependent. For many production tasks — classification, extraction, simple chat — quantized models perform close to full precision. The only reliable way to know is to test the quantized version against your actual use case and evaluation criteria.</p>
+
+    <h3>How do I know if I need a dedicated GPU instance instead of serverless?</h3>
+    <p>As a rule of thumb: if your traffic is steady and high enough that a serverless flat-rate plan's capacity would be fully utilized around the clock, a dedicated instance can be cheaper — but only if you have the engineering capacity to manage it. If traffic is spiky, seasonal, or still growing, serverless (in either pricing form) is usually the better starting point.</p>
+
+    <h3>Why do some providers not advertise per-token pricing at all?</h3>
+    <p>Usually because their economics depend on guaranteed utilization rather than per-request margins — flat-rate and instance-based providers are, in effect, betting that your usage will be steady enough that a fixed price works out in their favour (and often, eventually, in yours too).</p>
 
     <h2>Final Thoughts</h2>
     <p>Inference pricing looks complicated mainly because providers are packaging the same underlying resource — GPU time — in different ways to suit different traffic patterns. Once you can see through the packaging:</p>
@@ -136,9 +189,9 @@
       <li>Flat-rate pricing is a tax on guaranteed capacity — watch utilization at low traffic.</li>
       <li>Per-instance pricing is a tax on idle time — watch your ops overhead, not just the hourly rate.</li>
     </ul>
-    <p>The right choice depends less on which provider has the "lowest" headline price, and more on which pricing shape matches your traffic pattern — and how that pattern is likely to change as you grow.</p>
+    <p>The right choice depends less on which provider has the "lowest" headline price, and more on which pricing shape matches your traffic pattern today — and the worked example above shows exactly how quickly that answer can change as you grow.</p>
 
-    <p class="spec-note">Unsolicited writing sample created for portfolio purposes. Not affiliated with or commissioned by any inference provider.</p>
+    <p class="spec-note">Unsolicited writing sample created for portfolio purposes. Figures in the worked example are illustrative and for explanatory purposes only — always use current, provider-specific rates for real budgeting.</p>
   </div>
 </body>
 </html>
