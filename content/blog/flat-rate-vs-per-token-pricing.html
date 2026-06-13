@@ -3,16 +3,182 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Flat-Rate vs. Per-Token Pricing — Stephen Tiliki</title>
+  <title>Flat-Rate vs. Per-Token: How to Think About LLM API Pricing — Stephen Tiliki</title>
   <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="../../styles.css">
 </head>
 <body>
   <div class="doc-page">
-    <a class="doc-back" href="../../index.html">&larr; back to portfolio</a>
-    <p class="doc-eyebrow">Coming soon</p>
-    <h1>Flat-Rate vs. Per-Token Pricing</h1>
-    <p>This sample is being drafted and will be added shortly.</p>
+    <a class="doc-back" href="../../index.html#samples">&larr; back to portfolio</a>
+    <p class="doc-eyebrow">Comparison · MOFU</p>
+    <h1>Flat-Rate vs. Per-Token: How to Think About LLM API Pricing</h1>
+    <p class="doc-meta">~14 min read · Writing sample</p>
+
+    <p>Here's the answer most pricing pages won't give you directly: <strong>flat-rate pricing rewards steady, predictable traffic, and per-token pricing rewards traffic that's spiky, low-volume, or still finding its shape.</strong> Almost every other consideration — model selection, cold starts, even which provider you pick — sits downstream of that one fact about your own traffic.</p>
+
+    <p>This guide walks through four common traffic patterns and which pricing model tends to win for each, the hybrid approaches teams use once they outgrow a single model, the hidden costs that don't show up on the pricing page at all, and a simple framework for making the call with your own numbers.</p>
+
+    <div class="takeaways">
+      <p class="callout-label">Key Takeaways</p>
+      <ul>
+        <li><strong>The decision is about your traffic shape, not the provider.</strong> The same provider's flat-rate and per-token plans can both be "right" — just for different products.</li>
+        <li><strong>Steady, high-utilization traffic favours flat-rate.</strong> Spiky, unpredictable, or low-volume traffic favours per-token.</li>
+        <li><strong>Many production systems end up hybrid</strong> — a flat-rate base for predictable load, with per-token overflow or a second provider for spikes.</li>
+        <li><strong>Hidden costs — rate limits, burst pricing, minimum commitments — often matter more than the headline rate.</strong></li>
+        <li><strong>The right answer changes as you grow</strong>, so this isn't a one-time decision — it's a recurring check-in.</li>
+      </ul>
+    </div>
+
+    <h2>The Core Trade-off, Restated</h2>
+    <p>Per-token pricing charges you for what you use, when you use it. Flat-rate pricing charges you for guaranteed capacity, whether or not you use all of it. Neither is "cheaper" in the abstract — each is a bet on how your traffic behaves.</p>
+    <p>A flat-rate plan is a bet that your average utilization will be high enough that the fixed price beats paying per request. A per-token plan is a bet that your traffic is variable enough — or low enough — that paying only for what you use beats reserving capacity you might not need.</p>
+    <p>Both bets can be right. The question is which one matches <em>your</em> traffic — which is why the next section works through four common shapes rather than declaring a universal winner.</p>
+
+    <h2>Four Traffic Patterns and Which Pricing Tends to Win</h2>
+
+    <h3>1. Steady, High-Volume Traffic</h3>
+    <p>Think: an established product with thousands of consistent daily requests, relatively flat across hours and days. This is the textbook case for flat-rate pricing — high, consistent utilization means the fixed capacity is rarely idle, so its effective per-request cost keeps dropping as volume rises. Per-token pricing, by contrast, scales linearly forever — there's no point at which it gets cheaper per unit.</p>
+    <p><strong>Likely winner: flat-rate</strong>, often by a wide margin once volume is high enough.</p>
+
+    <h3>2. Spiky or Unpredictable Traffic</h3>
+    <p>Think: a feature that gets used in bursts — a marketing campaign drives a day of heavy usage, then traffic drops back to near zero. Sizing a flat-rate plan for the peak means paying for that capacity during all the quiet periods too. Per-token pricing lets the bill follow the traffic.</p>
+    <p><strong>Likely winner: per-token</strong> — with the caveat that very large spikes can hit rate limits on usage-based plans (more on this below).</p>
+
+    <h3>3. Low-Volume or Early-Stage Products</h3>
+    <p>Think: a new feature, an MVP, or an internal tool with a handful of users. At low volume, almost any flat-rate plan's fixed cost will exceed the actual compute being used — there simply isn't enough traffic to make "guaranteed capacity" pay for itself yet.</p>
+    <p><strong>Likely winner: per-token</strong>, near-universally, until volume grows enough to revisit the question.</p>
+
+    <h3>4. Seasonal or Cyclical Traffic</h3>
+    <p>Think: a product with predictable busy periods — end-of-quarter reporting tools, tax-season assistants, retail-adjacent products around major shopping events. This is the trickiest pattern, because the "right" answer is different in different months.</p>
+    <p><strong>Likely winner: depends</strong> — and this is the pattern most likely to benefit from the hybrid approaches below, or from a provider that allows changing plan tiers without penalty.</p>
+
+    <table>
+      <caption>Table 1. Traffic pattern vs. typical pricing fit</caption>
+      <thead>
+        <tr>
+          <th>Traffic pattern</th>
+          <th>Typical winner</th>
+          <th>Why</th>
+          <th>Watch out for</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Steady, high-volume</td>
+          <td>Flat-rate</td>
+          <td>High utilization makes fixed capacity efficient</td>
+          <td>Sudden growth beyond your tier's capacity</td>
+        </tr>
+        <tr>
+          <td>Spiky / unpredictable</td>
+          <td>Per-token</td>
+          <td>Bill follows actual usage, no idle capacity cost</td>
+          <td>Rate limits during extreme spikes</td>
+        </tr>
+        <tr>
+          <td>Low-volume / early-stage</td>
+          <td>Per-token</td>
+          <td>No fixed cost to "earn back" at low usage</td>
+          <td>Re-evaluate as volume grows — don't set and forget</td>
+        </tr>
+        <tr>
+          <td>Seasonal / cyclical</td>
+          <td>Depends — often hybrid</td>
+          <td>Optimal model changes month to month</td>
+          <td>Plan switching fees or lock-in periods</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <h2>Hybrid Approaches</h2>
+    <p>Once a product has meaningful traffic, "pick one pricing model" often stops being the real question. Three hybrid patterns show up repeatedly in production systems:</p>
+    <ul>
+      <li><strong>Flat-rate base + per-token overflow.</strong> Size a flat-rate plan for your typical baseline traffic, and let genuinely unusual spikes spill over to a per-token plan (sometimes with the same provider, sometimes a second one). This caps your worst-case "wasted capacity" cost while still covering spikes.</li>
+      <li><strong>Multi-provider routing by workload type.</strong> Route latency-sensitive, high-volume traffic (e.g. the core chat experience) to a flat-rate plan, and route lower-priority or batch workloads (e.g. nightly summarization jobs) to a per-token plan elsewhere — often on a different model entirely, since batch jobs can tolerate a smaller/cheaper model.</li>
+      <li><strong>Tiered by feature maturity.</strong> New, experimental features start on per-token pricing (low commitment while usage is unproven); once a feature's traffic stabilizes and grows, it graduates to flat-rate or dedicated capacity.</li>
+    </ul>
+
+    <figure>
+      <svg viewBox="0 0 700 280" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Decision flowchart for choosing between flat-rate and per-token pricing">
+        <rect width="700" height="280" fill="#12161F"/>
+        <rect x="280" y="16" width="140" height="40" rx="6" fill="#1A2030" stroke="#232938"/>
+        <text x="350" y="40" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="11" fill="#E6E9EF">Is traffic steady?</text>
+
+        <line x1="350" y1="56" x2="180" y2="100" stroke="#5B6376"/>
+        <text x="245" y="80" font-family="IBM Plex Mono, monospace" font-size="10" fill="#5FB378">yes</text>
+        <line x1="350" y1="56" x2="520" y2="100" stroke="#5B6376"/>
+        <text x="445" y="80" font-family="IBM Plex Mono, monospace" font-size="10" fill="#D9789C">no</text>
+
+        <rect x="100" y="100" width="160" height="40" rx="6" fill="#1A2030" stroke="#232938"/>
+        <text x="180" y="124" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="11" fill="#E6E9EF">High volume?</text>
+
+        <rect x="440" y="100" width="160" height="40" rx="6" fill="#1A2030" stroke="#232938"/>
+        <text x="520" y="124" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="11" fill="#E6E9EF">Likely spiky/early?</text>
+
+        <line x1="180" y1="140" x2="180" y2="180" stroke="#5B6376"/>
+        <text x="200" y="165" font-family="IBM Plex Mono, monospace" font-size="10" fill="#5FB378">yes</text>
+        <rect x="70" y="184" width="220" height="44" rx="6" fill="#E3B341" opacity="0.12" stroke="#E3B341"/>
+        <text x="180" y="210" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="11" fill="#E3B341">Flat-rate</text>
+
+        <line x1="180" y1="140" x2="350" y2="184" stroke="#5B6376"/>
+        <text x="240" y="170" font-family="IBM Plex Mono, monospace" font-size="10" fill="#D9789C">no</text>
+
+        <line x1="520" y1="140" x2="520" y2="180" stroke="#5B6376"/>
+        <text x="540" y="165" font-family="IBM Plex Mono, monospace" font-size="10" fill="#5FB378">yes</text>
+        <rect x="410" y="184" width="220" height="44" rx="6" fill="#6E9FE3" opacity="0.12" stroke="#6E9FE3"/>
+        <text x="520" y="210" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="11" fill="#6E9FE3">Per-token</text>
+
+        <rect x="290" y="184" width="220" height="44" rx="6" fill="#5FB378" opacity="0.12" stroke="#5FB378"/>
+        <text x="400" y="204" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="11" fill="#5FB378">Likely hybrid:</text>
+        <text x="400" y="220" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="10" fill="#8B92A5">flat-rate base + per-token overflow</text>
+
+        <line x1="520" y1="140" x2="400" y2="184" stroke="#5B6376"/>
+        <text x="475" y="170" font-family="IBM Plex Mono, monospace" font-size="10" fill="#D9789C">no</text>
+      </svg>
+      <figcaption>Fig 1. A simplified starting point for the flat-rate vs. per-token decision — real workloads often combine branches.</figcaption>
+    </figure>
+
+    <h2>What Pricing Pages Don't Tell You</h2>
+    <p>Headline rates are the easiest thing to compare — and often the least decisive factor once you account for the following:</p>
+
+    <h3>Rate Limits</h3>
+    <p>Per-token plans often come with requests-per-minute or tokens-per-minute caps, especially on lower tiers. A traffic spike that exceeds these limits doesn't just cost more — it can fail outright, returning errors to users until the limit resets. If your "spiky" traffic pattern includes spikes large enough to hit these caps, the effective choice may not be "per-token vs. flat-rate" but "per-token-with-higher-limits vs. flat-rate."</p>
+
+    <h3>Burst and Overage Pricing</h3>
+    <p>Some flat-rate plans allow temporary bursts above the committed capacity, at a different (often per-token) rate. This is effectively a built-in hybrid — but it's worth checking whether burst pricing is competitive, or whether it's priced to discourage bursting altogether.</p>
+
+    <h3>Minimum Commitments and Lock-In</h3>
+    <p>Flat-rate plans, especially at higher tiers, sometimes involve monthly or annual commitments. This isn't necessarily bad — committing can unlock better rates — but it changes the calculation from "what's cheapest this month" to "what's cheapest given I can't easily downgrade for X months."</p>
+
+    <div class="callout">
+      <p class="callout-label">Pro tip</p>
+      <p>When evaluating a flat-rate plan, ask specifically: <em>what happens if our traffic drops 50% next quarter?</em> and <em>what happens if it grows 5x?</em> Both answers tell you more about the real cost of the plan than the headline price does.</p>
+    </div>
+
+    <h2>A Simple Framework for Making the Call</h2>
+    <ol>
+      <li><strong>Plot your traffic over the last 1–3 months</strong> (or your best projection, if pre-launch). Look at the ratio of peak to average — a ratio close to 1 suggests steady traffic; a ratio of 5x or more suggests spiky.</li>
+      <li><strong>Estimate your per-token cost</strong> at current volume using the provider's published rates.</li>
+      <li><strong>Find the flat-rate tier</strong> whose capacity comfortably covers your peak (not your average).</li>
+      <li><strong>Compare the two numbers</strong> — but don't stop here.</li>
+      <li><strong>Re-run steps 2–4 at 3x and 10x your current volume.</strong> If the answer flips, that's useful information: it tells you roughly when to plan a migration, rather than being surprised by it.</li>
+      <li><strong>Check rate limits and burst terms</strong> against your peak-to-average ratio — this can override the raw cost comparison if limits would be hit.</li>
+    </ol>
+
+    <h2>FAQ</h2>
+    <h3>If I start on per-token pricing, is switching to flat-rate later difficult?</h3>
+    <p>Technically, often not — many providers offer both under the same API, so switching can be a configuration change rather than a code change. The harder part is usually organizational: someone needs to notice that the traffic pattern has changed enough to revisit the decision, which is why it's worth scheduling this as a recurring check rather than a one-time setup task.</p>
+
+    <h3>Does a higher peak-to-average ratio always mean per-token is better?</h3>
+    <p>Usually, but not always — if the peaks themselves are large and frequent enough, a flat-rate tier sized for that peak might still come out ahead, especially if per-token pricing would also risk hitting rate limits during those peaks. The ratio is a strong signal, not an automatic answer.</p>
+
+    <h3>What if my traffic pattern is genuinely unknown (pre-launch)?</h3>
+    <p>Default to per-token. The cost of being "wrong" on a low-volume per-token bill is small; the cost of committing to flat-rate capacity for traffic that doesn't materialize is a fixed cost with nothing to show for it. Revisit once you have even a few weeks of real data.</p>
+
+    <h2>Final Thoughts</h2>
+    <p>The flat-rate vs. per-token question is really a question about your traffic, dressed up as a question about providers. Steady and high-volume favours flat-rate; spiky, low-volume, or unproven favours per-token; and most products that survive long enough end up somewhere hybrid. The mistake isn't picking the "wrong" one at launch — it's not building in the habit of re-checking as your traffic shape changes underneath you.</p>
+
+    <p class="spec-note">Unsolicited writing sample created for portfolio purposes.</p>
   </div>
 </body>
 </html>
