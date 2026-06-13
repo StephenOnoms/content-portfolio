@@ -3,16 +3,124 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Lighthouse — Pricing Page — Stephen Tiliki</title>
+  <title>Lighthouse — Pricing</title>
   <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="../../styles.css">
 </head>
 <body>
-  <div class="doc-page">
-    <a class="doc-back" href="../../index.html">&larr; back to portfolio</a>
-    <p class="doc-eyebrow">Coming soon</p>
-    <h1>Lighthouse — Pricing Page</h1>
-    <p>This sample is being drafted and will be added shortly.</p>
-  </div>
+
+  <header class="lp-topbar">
+    <div class="lp-topbar-inner">
+      <span class="lp-logo"><span class="dot"></span> Lighthouse</span>
+      <nav class="lp-nav">
+        <a href="homepage.html">Home</a>
+        <a href="developer-api.html">Developers</a>
+        <a href="pricing.html" class="current">Pricing</a>
+        <a href="../docs/quickstart-api-call.html">Docs</a>
+      </nav>
+      <a href="../docs/quickstart-api-call.html" class="btn btn-secondary" style="font-size:13px; padding:8px 16px;">Get API key</a>
+    </div>
+  </header>
+
+  <main class="lp-main">
+    <section class="lp-hero">
+      <p class="lp-eyebrow">Pricing</p>
+      <h1>One flat price.<br>Every model in the <span class="accent-word">catalog</span>.</h1>
+      <p class="lead">Pick a capacity tier based on how much concurrent traffic you need — not which models you're calling. Move between models freely; your bill doesn't move with you.</p>
+    </section>
+
+    <section class="lp-section" style="border-top:none; padding-top:0;">
+      <div class="lp-pricing-grid">
+        <div class="lp-price-card">
+          <p class="plan-name">Developer</p>
+          <p class="plan-price">$0<span>/month</span></p>
+          <p class="plan-desc">For testing, evaluation, and side projects.</p>
+          <ul>
+            <li>Access to the full model catalog</li>
+            <li>Up to 1 concurrent request</li>
+            <li>Community support</li>
+            <li>Standard cold-start performance</li>
+          </ul>
+          <a href="../docs/quickstart-api-call.html" class="btn btn-secondary">Start free</a>
+        </div>
+
+        <div class="lp-price-card featured">
+          <p class="plan-name">Growth</p>
+          <p class="plan-price">$99<span>/month</span></p>
+          <p class="plan-desc">For production features with steady traffic.</p>
+          <ul>
+            <li>Access to the full model catalog</li>
+            <li>Up to 10 concurrent requests</li>
+            <li>Priority cold-start performance</li>
+            <li>Usage dashboards by model</li>
+            <li>Email support</li>
+          </ul>
+          <a href="../docs/quickstart-api-call.html" class="btn btn-primary">Start free trial</a>
+        </div>
+
+        <div class="lp-price-card">
+          <p class="plan-name">Scale</p>
+          <p class="plan-price">$399<span>/month</span></p>
+          <p class="plan-desc">For high-traffic products and multi-team usage.</p>
+          <ul>
+            <li>Access to the full model catalog</li>
+            <li>Up to 50 concurrent requests</li>
+            <li>Dedicated cold-start pool</li>
+            <li>Team usage breakdowns</li>
+            <li>Priority support</li>
+          </ul>
+          <a href="../docs/quickstart-api-call.html" class="btn btn-secondary">Contact sales</a>
+        </div>
+      </div>
+      <p style="text-align:center; color: var(--text-faint); font-family: var(--mono); font-size: 12px; margin-top: 28px;">
+        Need more than 50 concurrent requests, or a custom region setup? <a href="#faq">See the FAQ</a> or contact us.
+      </p>
+    </section>
+
+    <section class="lp-section" id="faq">
+      <div class="lp-section-head">
+        <h2>Pricing FAQ</h2>
+      </div>
+
+      <div class="lp-faq-item">
+        <h3>Why flat-rate instead of per-token pricing?</h3>
+        <p>Per-token pricing means your bill changes every time you change models, and can be hard to predict when traffic is variable. Flat-rate pricing means your bill depends on how much concurrent capacity you need — not which model, or how verbose your prompts are. For teams running multiple models or experimenting frequently, this removes a recurring source of budget surprises.</p>
+      </div>
+
+      <div class="lp-faq-item">
+        <h3>What does "concurrent requests" mean for my bill?</h3>
+        <p>It's the number of requests your account can have in progress at the same time. If your traffic is mostly steady with occasional bursts, size your plan to your typical peak — not your average. Your dashboard shows your concurrency usage over time, so you can see whether you're near your tier's limit.</p>
+      </div>
+
+      <div class="lp-faq-item">
+        <h3>What happens if I exceed my concurrency limit?</h3>
+        <p>Requests beyond your tier's concurrent limit are queued briefly rather than rejected outright, so short bursts are smoothed out automatically. If you're consistently hitting your limit, your dashboard will flag it — that's usually a sign it's time to move up a tier.</p>
+      </div>
+
+      <div class="lp-faq-item">
+        <h3>Is this cheaper than per-token pricing?</h3>
+        <p>It depends on your traffic. For steady, moderate-to-high traffic across multiple models, flat-rate is usually cheaper and more predictable. For very low-volume or highly sporadic traffic, a per-token provider may cost less in absolute terms — though often with less predictability. If you're unsure, the Developer tier is free, so you can compare your real usage against a per-token estimate before committing.</p>
+      </div>
+
+      <div class="lp-faq-item">
+        <h3>Can I change plans later?</h3>
+        <p>Yes — you can move between tiers at any time from your dashboard. Changes take effect at the start of your next billing cycle, so there's no penalty for trying a higher tier during a traffic spike and stepping back down afterward.</p>
+      </div>
+    </section>
+
+    <section class="lp-final-cta">
+      <h2>Start on the free tier — no credit card required</h2>
+      <p>See how flat-rate, multi-model access fits your workload before you commit to a plan.</p>
+      <div class="lp-cta-row">
+        <a href="../docs/quickstart-api-call.html" class="btn btn-primary">Get started →</a>
+      </div>
+    </section>
+  </main>
+
+  <footer class="lp-footer">
+    <p class="lp-disclaimer">Lighthouse is a fictional product created for portfolio/writing-sample purposes by Stephen Tiliki. Pricing figures are illustrative. Not a real company or service.</p>
+    <a href="../../index.html#samples">&larr; back to portfolio</a>
+  </footer>
+
 </body>
 </html>

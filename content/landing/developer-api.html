@@ -3,16 +3,130 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Lighthouse — Developer API Page — Stephen Tiliki</title>
+  <title>Lighthouse — Developer API</title>
   <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="../../styles.css">
 </head>
 <body>
-  <div class="doc-page">
-    <a class="doc-back" href="../../index.html">&larr; back to portfolio</a>
-    <p class="doc-eyebrow">Coming soon</p>
-    <h1>Lighthouse — Developer API Page</h1>
-    <p>This sample is being drafted and will be added shortly.</p>
-  </div>
+
+  <header class="lp-topbar">
+    <div class="lp-topbar-inner">
+      <span class="lp-logo"><span class="dot"></span> Lighthouse</span>
+      <nav class="lp-nav">
+        <a href="homepage.html">Home</a>
+        <a href="developer-api.html" class="current">Developers</a>
+        <a href="pricing.html">Pricing</a>
+        <a href="../docs/quickstart-api-call.html">Docs</a>
+      </nav>
+      <a href="../docs/quickstart-api-call.html" class="btn btn-secondary" style="font-size:13px; padding:8px 16px;">Get API key</a>
+    </div>
+  </header>
+
+  <main class="lp-main">
+    <section class="lp-hero">
+      <p class="lp-eyebrow">For developers</p>
+      <h1>One endpoint.<br>Every <span class="accent-word">open-weight model</span> you'll ever need.</h1>
+      <p class="lead">Lighthouse speaks the OpenAI chat completions format, so the SDK and code you already have keep working — just point them at a different base URL and pick a model from a catalog of thousands.</p>
+      <div class="lp-cta-row">
+        <a href="../docs/quickstart-api-call.html" class="btn btn-primary">Read the quickstart →</a>
+        <a href="../docs/switching-models-guide.html" class="btn btn-secondary">Switching models guide</a>
+      </div>
+
+      <div class="lp-code-window">
+        <div class="terminal-bar">
+          <span class="traffic"><span></span><span></span><span></span></span>
+          python
+        </div>
+        <pre><code>from openai import OpenAI
+
+client = OpenAI(
+    base_url="https://api.lighthouse.dev/v1",
+    api_key="LIGHTHOUSE_API_KEY",
+)
+
+response = client.chat.completions.create(
+    model="Qwen/Qwen2.5-32B-Instruct",
+    messages=[{"role": "user", "content": "Explain cold starts in one sentence."}],
+)
+
+print(response.choices[0].message.content)</code></pre>
+      </div>
+    </section>
+
+    <section class="lp-section">
+      <div class="lp-section-head">
+        <h2>Everything you'd expect from a modern inference API</h2>
+        <p>Plus a couple of things you might not expect — like not needing a different integration for every model.</p>
+      </div>
+      <div class="lp-features">
+        <div class="lp-feature">
+          <div class="icon-box">⇄</div>
+          <h3>OpenAI-compatible chat completions</h3>
+          <p>Drop-in compatible with the OpenAI Python and Node SDKs, LangChain, LlamaIndex, and any tool that speaks the same format.</p>
+        </div>
+        <div class="lp-feature">
+          <div class="icon-box">▸</div>
+          <h3>Streaming responses</h3>
+          <p>Set <code>stream: true</code> to receive tokens as they're generated — useful for chat interfaces where perceived latency matters.</p>
+        </div>
+        <div class="lp-feature">
+          <div class="icon-box">▤</div>
+          <h3>Thousands of models, one auth</h3>
+          <p>Your API key works across the entire catalog. No per-model approvals or separate credentials.</p>
+        </div>
+        <div class="lp-feature">
+          <div class="icon-box">◴</div>
+          <h3>Consistent request shape</h3>
+          <p>Every model accepts the same <code>messages</code> array and parameters — switching models is a one-line change, not a rewrite.</p>
+        </div>
+        <div class="lp-feature">
+          <div class="icon-box">▥</div>
+          <h3>Usage and cost visibility</h3>
+          <p>Every response includes token usage. Your dashboard breaks this down by model so you can see exactly where capacity is going.</p>
+        </div>
+        <div class="lp-feature">
+          <div class="icon-box">◫</div>
+          <h3>Regional endpoints</h3>
+          <p>Route requests to the region closest to your users to reduce network latency on top of model latency.</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="lp-section">
+      <div class="lp-section-head">
+        <h2>Frequently asked</h2>
+      </div>
+      <div class="lp-faq-item">
+        <h3>Do I need to change my code to switch models?</h3>
+        <p>No — change the <code>model</code> field in your request to any model name from the Lighthouse catalog. Everything else (messages, parameters, response format) stays the same. See the model-switching guide for a worked example.</p>
+      </div>
+      <div class="lp-faq-item">
+        <h3>Is there a rate limit?</h3>
+        <p>Rate limits are tied to your plan's concurrency tier rather than a fixed requests-per-minute number — see the pricing page for details on what each tier supports.</p>
+      </div>
+      <div class="lp-faq-item">
+        <h3>Can I use this with LangChain?</h3>
+        <p>Yes — configure LangChain's OpenAI-compatible chat model class with Lighthouse's base URL and your API key, then use any model name from the catalog. No additional packages required.</p>
+      </div>
+      <div class="lp-faq-item">
+        <h3>What happens if a model I'm using is updated or deprecated?</h3>
+        <p>We pin model versions by default, so your requests keep working with the version you started with. When we add a newer version of a model, it appears under a new model name — your existing integration is unaffected until you choose to switch.</p>
+      </div>
+    </section>
+
+    <section class="lp-final-cta">
+      <h2>Get an API key and make your first call</h2>
+      <p>The quickstart takes about five minutes, start to finish.</p>
+      <div class="lp-cta-row">
+        <a href="../docs/quickstart-api-call.html" class="btn btn-primary">Read the quickstart →</a>
+      </div>
+    </section>
+  </main>
+
+  <footer class="lp-footer">
+    <p class="lp-disclaimer">Lighthouse is a fictional product created for portfolio/writing-sample purposes by Stephen Tiliki. Not a real company or service.</p>
+    <a href="../../index.html#samples">&larr; back to portfolio</a>
+  </footer>
+
 </body>
 </html>

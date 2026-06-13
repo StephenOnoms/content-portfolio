@@ -3,16 +3,121 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Lighthouse Docs — Quickstart — Stephen Tiliki</title>
+  <title>Quickstart: Your First API Call — Lighthouse Docs</title>
   <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="../../styles.css">
 </head>
 <body>
+
+  <header class="lp-topbar">
+    <div class="lp-topbar-inner">
+      <span class="lp-logo"><span class="dot"></span> Lighthouse Docs</span>
+      <nav class="lp-nav">
+        <a href="../landing/homepage.html">Home</a>
+        <a href="../landing/developer-api.html">Developers</a>
+        <a href="../landing/pricing.html">Pricing</a>
+        <a href="quickstart-api-call.html" class="current">Docs</a>
+      </nav>
+    </div>
+  </header>
+
   <div class="doc-page">
-    <a class="doc-back" href="../../index.html">&larr; back to portfolio</a>
-    <p class="doc-eyebrow">Coming soon</p>
-    <h1>Lighthouse Docs — Quickstart</h1>
-    <p>This sample is being drafted and will be added shortly.</p>
+    <a class="doc-back" href="../../index.html#samples">&larr; back to portfolio</a>
+    <p class="doc-eyebrow">Quickstart</p>
+    <h1>Your First API Call</h1>
+    <p class="doc-meta">~5 min · Lighthouse Docs</p>
+
+    <p>This guide gets you from signup to a working response in about five minutes. By the end, you'll have an API key, you'll have made one request, and you'll know where to go next depending on what you're building.</p>
+
+    <div class="takeaways">
+      <p class="callout-label">In this guide</p>
+      <ul>
+        <li><strong>Step 1:</strong> Create an account and generate an API key</li>
+        <li><strong>Step 2:</strong> Make your first request with <code>curl</code></li>
+        <li><strong>Step 3:</strong> Make the same request with the OpenAI Python SDK</li>
+        <li><strong>Step 4:</strong> Understand the response, including usage data</li>
+        <li><strong>Next steps:</strong> where to go from here</li>
+      </ul>
+    </div>
+
+    <h2>Step 1: Create an API Key</h2>
+    <p>Sign up at <code>lighthouse.dev</code> and open your dashboard. Under <strong>API Keys</strong>, click <strong>Create new key</strong> and give it a name (e.g. <code>dev-local</code>) so you can identify it later if you create more.</p>
+    <p>Copy the key now — for security, it's only shown once. Store it as an environment variable rather than pasting it directly into code:</p>
+    <pre><code>export LIGHTHOUSE_API_KEY="your-key-here"</code></pre>
+
+    <div class="callout">
+      <p class="callout-label">Note</p>
+      <p>New accounts start on the free Developer tier automatically — no credit card required for this quickstart.</p>
+    </div>
+
+    <h2>Step 2: Make Your First Request with curl</h2>
+    <p>The Lighthouse API uses the same request format as OpenAI's chat completions endpoint. Here's a minimal request:</p>
+    <pre><code>curl https://api.lighthouse.dev/v1/chat/completions \
+  -H "Authorization: Bearer $LIGHTHOUSE_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "model": "meta-llama/Llama-3-8B-Instruct",
+    "messages": [
+      {"role": "user", "content": "Say hello in one sentence."}
+    ]
+  }'</code></pre>
+
+    <p>You should get a JSON response within a few seconds. If this is the first request to this model from your account, it may take slightly longer — see the note on cold starts below.</p>
+
+    <h2>Step 3: Make the Same Request with the OpenAI Python SDK</h2>
+    <p>Because the API is OpenAI-compatible, you can use the official OpenAI Python SDK by changing only the <code>base_url</code> and <code>api_key</code>:</p>
+    <pre><code>pip install openai</code></pre>
+    <pre><code>from openai import OpenAI
+
+client = OpenAI(
+    base_url="https://api.lighthouse.dev/v1",
+    api_key="your-key-here",  # or os.environ["LIGHTHOUSE_API_KEY"]
+)
+
+response = client.chat.completions.create(
+    model="meta-llama/Llama-3-8B-Instruct",
+    messages=[
+        {"role": "user", "content": "Say hello in one sentence."}
+    ],
+)
+
+print(response.choices[0].message.content)</code></pre>
+
+    <h2>Step 4: Understanding the Response</h2>
+    <p>The response includes the generated message plus a <code>usage</code> object showing token counts:</p>
+    <pre><code>{
+  "id": "chatcmpl-...",
+  "choices": [
+    {
+      "message": {
+        "role": "assistant",
+        "content": "Hello! It's great to meet you."
+      },
+      "finish_reason": "stop"
+    }
+  ],
+  "usage": {
+    "prompt_tokens": 12,
+    "completion_tokens": 9,
+    "total_tokens": 21
+  }
+}</code></pre>
+    <p>The <code>usage</code> object is worth logging from day one — even though the Developer and Growth plans are flat-rate, tracking token usage per model helps you spot when a feature's prompts are growing (e.g. as you add more context or conversation history), which is useful context if you ever need to debug latency or plan a tier change.</p>
+
+    <div class="callout">
+      <p class="callout-label">About cold starts</p>
+      <p>If a model hasn't been called recently by any Lighthouse user, the first request may take longer while it's loaded. Subsequent requests to the same model are fast. If your application is latency-sensitive for a specific model, consider sending an occasional "warm-up" request during low-traffic periods.</p>
+    </div>
+
+    <h2>Next Steps</h2>
+    <ul>
+      <li><strong>Try a different model</strong> by changing the <code>model</code> field — see the <a href="switching-models-guide.html">model-switching guide</a> for a walkthrough and a list of popular models.</li>
+      <li><strong>Enable streaming</strong> by adding <code>"stream": true</code> to your request if you're building a chat interface and want to display tokens as they arrive.</li>
+      <li><strong>Check your usage dashboard</strong> to see request volume and concurrency — useful before deciding whether to move off the free tier.</li>
+    </ul>
+
+    <p class="spec-note">Unsolicited writing sample created for portfolio purposes. "Lighthouse" is a fictional product; endpoints and code samples are illustrative.</p>
   </div>
+
 </body>
 </html>

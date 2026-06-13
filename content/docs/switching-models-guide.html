@@ -3,16 +3,138 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Lighthouse Docs — Switching Models — Stephen Tiliki</title>
+  <title>Switching Models Without Changing Code — Lighthouse Docs</title>
   <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="../../styles.css">
 </head>
 <body>
+
+  <header class="lp-topbar">
+    <div class="lp-topbar-inner">
+      <span class="lp-logo"><span class="dot"></span> Lighthouse Docs</span>
+      <nav class="lp-nav">
+        <a href="../landing/homepage.html">Home</a>
+        <a href="../landing/developer-api.html">Developers</a>
+        <a href="../landing/pricing.html">Pricing</a>
+        <a href="quickstart-api-call.html" class="current">Docs</a>
+      </nav>
+    </div>
+  </header>
+
   <div class="doc-page">
-    <a class="doc-back" href="../../index.html">&larr; back to portfolio</a>
-    <p class="doc-eyebrow">Coming soon</p>
-    <h1>Lighthouse Docs — Switching Models</h1>
-    <p>This sample is being drafted and will be added shortly.</p>
+    <a class="doc-back" href="../../index.html#samples">&larr; back to portfolio</a>
+    <p class="doc-eyebrow">How-to guide</p>
+    <h1>Switching Models Without Changing Code</h1>
+    <p class="doc-meta">~6 min · Lighthouse Docs</p>
+
+    <p>One of the most common questions from new users is some version of: <em>"if I want to try a different model, how much do I need to rebuild?"</em> The short answer: <strong>nothing, beyond changing one string.</strong> This guide shows exactly what changes (and what doesn't) when you switch models, plus a few practical tips for doing it safely.</p>
+
+    <div class="takeaways">
+      <p class="callout-label">Key Takeaways</p>
+      <ul>
+        <li><strong>The <code>model</code> field is the only required change</strong> — request and response formats are identical across the catalog.</li>
+        <li><strong>Model names follow the pattern <code>org/model-name</code></strong>, matching their Hugging Face Hub identifiers.</li>
+        <li><strong>Not all models support every parameter</strong> (e.g. function calling) — check a model's catalog page if you rely on advanced features.</li>
+        <li><strong>Re-run your evaluation suite after switching</strong> — output quality and style can differ meaningfully between models, even with identical prompts.</li>
+        <li><strong>Your billing doesn't change</strong> when you switch models on flat-rate plans, which makes this safe to experiment with.</li>
+      </ul>
+    </div>
+
+    <h2>What Changes When You Switch Models</h2>
+    <p>Exactly one thing: the value of the <code>model</code> field in your request. Everything else — the endpoint, your authentication, the shape of <code>messages</code>, and the shape of the response — stays the same.</p>
+
+    <p>Here's the same request to three different models. Only the highlighted line changes:</p>
+
+    <pre><code># Llama 3
+{
+  "model": "meta-llama/Llama-3-8B-Instruct",
+  "messages": [{"role": "user", "content": "Summarize this in one sentence: ..."}]
+}
+
+# Qwen 2.5
+{
+  "model": "Qwen/Qwen2.5-32B-Instruct",
+  "messages": [{"role": "user", "content": "Summarize this in one sentence: ..."}]
+}
+
+# Mistral
+{
+  "model": "mistralai/Mistral-Small-24B-Instruct-2501",
+  "messages": [{"role": "user", "content": "Summarize this in one sentence: ..."}]
+}</code></pre>
+
+    <h2>Model Naming Convention</h2>
+    <p>Lighthouse model names follow the <code>organization/model-name</code> pattern used on the Hugging Face Hub. This is deliberate — if you can find a model on the Hub, you can usually call it on Lighthouse using the same identifier (check the catalog to confirm availability). A few examples across common use cases:</p>
+
+    <table>
+      <caption>Table 1. Example models by use case</caption>
+      <thead>
+        <tr>
+          <th>Use case</th>
+          <th>Example model</th>
+          <th>Notes</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>General-purpose chat</td>
+          <td><code>meta-llama/Llama-3-8B-Instruct</code></td>
+          <td>Good default for most conversational use cases</td>
+        </tr>
+        <tr>
+          <td>Higher-quality reasoning</td>
+          <td><code>Qwen/Qwen2.5-32B-Instruct</code></td>
+          <td>Larger model — higher latency, often better on complex tasks</td>
+        </tr>
+        <tr>
+          <td>Lower latency / cost-sensitive</td>
+          <td><code>mistralai/Mistral-Small-24B-Instruct-2501</code></td>
+          <td>Good middle ground for latency-sensitive features</td>
+        </tr>
+        <tr>
+          <td>Long-context tasks</td>
+          <td><code>deepseek-ai/DeepSeek-V3</code></td>
+          <td>Check the catalog page for the model's maximum context length</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <h2>A Practical Workflow for Trying a New Model</h2>
+    <ol>
+      <li><strong>Pick a small, representative sample</strong> of real inputs from your application — 10-20 examples is enough to start.</li>
+      <li><strong>Run the sample through your current model</strong> and save the outputs as a baseline.</li>
+      <li><strong>Change only the <code>model</code> field</strong> and re-run the same sample.</li>
+      <li><strong>Compare outputs side by side.</strong> Look for differences in tone, length, formatting, and correctness — not just "is it good," but "is it different in ways that matter for this feature."</li>
+      <li><strong>If it looks promising, expand the sample</strong> before switching in production — a 10-example check is a sanity check, not a full evaluation.</li>
+    </ol>
+
+    <div class="callout">
+      <p class="callout-label">Pro tip</p>
+      <p>Because switching models doesn't change your billing on flat-rate plans, this workflow costs you nothing extra to run — which makes "just try it" a much lower-stakes proposition than on per-token pricing, where every evaluation run has a direct cost.</p>
+    </div>
+
+    <h2>What Doesn't Carry Over Automatically</h2>
+    <ul>
+      <li><strong>System prompt effectiveness.</strong> A system prompt tuned for one model's quirks may behave slightly differently on another — this is usually minor, but worth including in your comparison sample.</li>
+      <li><strong>Advanced feature support.</strong> Function/tool calling, JSON mode, and similar features aren't supported identically across every model in the catalog. Check a model's catalog page before relying on these for a model you haven't used before.</li>
+      <li><strong>Output length and verbosity.</strong> Different models have different default "chattiness." If your application parses output programmatically, check that format expectations still hold.</li>
+    </ul>
+
+    <h2>Common Pitfalls</h2>
+    <ul>
+      <li><strong>Switching in production without re-evaluating.</strong> "Same request format" does not mean "same output quality" — always run at least a small comparison first.</li>
+      <li><strong>Assuming all models support the same parameters.</strong> If a request that included a tool-calling parameter returns an error on a new model, that's the most likely cause.</li>
+      <li><strong>Forgetting to update logging/labels.</strong> If you log which model handled a request (recommended — see the quickstart), remember to update this when you switch, or your analytics will misattribute results.</li>
+    </ul>
+
+    <h2>Related</h2>
+    <ul>
+      <li><a href="quickstart-api-call.html">Quickstart: Your First API Call</a></li>
+      <li><a href="../landing/pricing.html">Pricing</a> — for how flat-rate plans make experimentation cost-neutral</li>
+    </ul>
+
+    <p class="spec-note">Unsolicited writing sample created for portfolio purposes. "Lighthouse" is a fictional product; model names are real open-weight models used for illustrative purposes and availability is not guaranteed on any actual platform.</p>
   </div>
+
 </body>
 </html>

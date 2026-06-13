@@ -3,16 +3,148 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Lighthouse — Homepage Copy — Stephen Tiliki</title>
+  <title>Lighthouse — Serverless inference for open-weight models</title>
   <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="../../styles.css">
 </head>
 <body>
-  <div class="doc-page">
-    <a class="doc-back" href="../../index.html">&larr; back to portfolio</a>
-    <p class="doc-eyebrow">Coming soon</p>
-    <h1>Lighthouse — Homepage Copy</h1>
-    <p>This sample is being drafted and will be added shortly.</p>
-  </div>
+
+  <header class="lp-topbar">
+    <div class="lp-topbar-inner">
+      <span class="lp-logo"><span class="dot"></span> Lighthouse</span>
+      <nav class="lp-nav">
+        <a href="homepage.html" class="current">Home</a>
+        <a href="developer-api.html">Developers</a>
+        <a href="pricing.html">Pricing</a>
+        <a href="../docs/quickstart-api-call.html">Docs</a>
+      </nav>
+      <a href="developer-api.html" class="btn btn-secondary" style="font-size:13px; padding:8px 16px;">Get API key</a>
+    </div>
+  </header>
+
+  <main class="lp-main">
+    <section class="lp-hero">
+      <p class="lp-eyebrow">Serverless inference</p>
+      <h1>Run any open-weight model.<br>Pay for <span class="accent-word">capacity</span>, not chaos.</h1>
+      <p class="lead">Lighthouse gives you one API for thousands of open-weight models, with flat-rate pricing that doesn't change every time you switch models. No GPUs to manage. No surprise bills when a feature takes off.</p>
+      <div class="lp-cta-row">
+        <a href="developer-api.html" class="btn btn-primary">Start building →</a>
+        <a href="pricing.html" class="btn btn-secondary">View pricing</a>
+      </div>
+
+      <div class="lp-code-window">
+        <div class="terminal-bar">
+          <span class="traffic"><span></span><span></span><span></span></span>
+          quickstart.sh
+        </div>
+        <pre><code>curl https://api.lighthouse.dev/v1/chat/completions \
+  -H "Authorization: Bearer $LIGHTHOUSE_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "model": "meta-llama/Llama-3-8B-Instruct",
+    "messages": [{"role": "user", "content": "Hello, Lighthouse"}]
+  }'</code></pre>
+      </div>
+    </section>
+
+    <section class="lp-section">
+      <div class="lp-section-head">
+        <h2>Built for teams who outgrew "just call OpenAI"</h2>
+        <p>You want model choice, predictable costs, and an API you already know how to use. Lighthouse is built around those three things — nothing else.</p>
+      </div>
+      <div class="lp-features">
+        <div class="lp-feature">
+          <div class="icon-box">◧</div>
+          <h3>One API, thousands of models</h3>
+          <p>Switch from Llama to Qwen to Mistral by changing one string in your request — no new integration, no new contract.</p>
+        </div>
+        <div class="lp-feature">
+          <div class="icon-box">$</div>
+          <h3>Flat-rate pricing</h3>
+          <p>Pick a capacity tier and know your bill before the month starts. No per-model rate cards to track.</p>
+        </div>
+        <div class="lp-feature">
+          <div class="icon-box">◴</div>
+          <h3>Fast cold starts</h3>
+          <p>Our model-loading pipeline is built to get you a response quickly, even for models you haven't called recently.</p>
+        </div>
+        <div class="lp-feature">
+          <div class="icon-box">⇄</div>
+          <h3>OpenAI-compatible</h3>
+          <p>If your code can call OpenAI's API, it can call Lighthouse. Change the base URL and model name — that's it.</p>
+        </div>
+        <div class="lp-feature">
+          <div class="icon-box">▤</div>
+          <h3>Built-in usage dashboards</h3>
+          <p>See concurrency, latency, and cost per model in one place — no separate observability stack required to get started.</p>
+        </div>
+        <div class="lp-feature">
+          <div class="icon-box">◫</div>
+          <h3>Works with your stack</h3>
+          <p>LangChain, LlamaIndex, and any OpenAI SDK work out of the box — see the developer docs for setup details.</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="lp-section">
+      <div class="lp-section-head">
+        <h2>From signup to first response in three steps</h2>
+        <p>No infrastructure to provision. No waitlists for popular models.</p>
+      </div>
+      <div class="lp-steps">
+        <div class="lp-step">
+          <div class="step-num">1</div>
+          <h3>Create an API key</h3>
+          <p>Sign up and generate a key from your dashboard — no credit card required to start on the free tier.</p>
+        </div>
+        <div class="lp-step">
+          <div class="step-num">2</div>
+          <h3>Pick a model</h3>
+          <p>Browse the catalog or use the model you already know. Every model uses the same request format.</p>
+        </div>
+        <div class="lp-step">
+          <div class="step-num">3</div>
+          <h3>Send a request</h3>
+          <p>Call the chat completions endpoint with your existing OpenAI-compatible client. That's the whole integration.</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="lp-section">
+      <div class="lp-section-head">
+        <h2>What teams build on Lighthouse</h2>
+        <p>A few examples of how flat-rate, multi-model access changes what's worth building.</p>
+      </div>
+      <div class="lp-testimonials">
+        <div class="lp-testimonial">
+          <p class="quote">"We A/B test three different open models in production without re-pricing the project every time. That alone changed how we plan features."</p>
+          <p class="attribution"><strong>Eng Lead</strong> — Voltframe (developer tools)</p>
+        </div>
+        <div class="lp-testimonial">
+          <p class="quote">"Our usage is extremely spiky around product launches. Flat-rate capacity means launch week doesn't blow our monthly budget."</p>
+          <p class="attribution"><strong>Founder</strong> — Northwind Labs (consumer app)</p>
+        </div>
+        <div class="lp-testimonial">
+          <p class="quote">"Switching the model string and re-running our eval suite takes minutes. We used to budget a day for this."</p>
+          <p class="attribution"><strong>ML Engineer</strong> — Ardent Analytics (data platform)</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="lp-final-cta">
+      <h2>Ready to stop pricing your stack model-by-model?</h2>
+      <p>Get an API key in minutes and make your first call today.</p>
+      <div class="lp-cta-row">
+        <a href="developer-api.html" class="btn btn-primary">Start building →</a>
+        <a href="../docs/quickstart-api-call.html" class="btn btn-secondary">Read the quickstart</a>
+      </div>
+    </section>
+  </main>
+
+  <footer class="lp-footer">
+    <p class="lp-disclaimer">Lighthouse is a fictional product created for portfolio/writing-sample purposes by Stephen Tiliki. Not a real company or service.</p>
+    <a href="../../index.html#samples">&larr; back to portfolio</a>
+  </footer>
+
 </body>
 </html>
