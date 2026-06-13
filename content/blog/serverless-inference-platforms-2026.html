@@ -9,10 +9,112 @@
 </head>
 <body>
   <div class="doc-page">
-    <a class="doc-back" href="../../index.html">&larr; back to portfolio</a>
-    <p class="doc-eyebrow">Coming soon</p>
-    <h1>Serverless Inference Platforms Worth Watching in 2026</h1>
-    <p>This sample is being drafted and will be added shortly.</p>
+    <a class="doc-back" href="../../index.html#samples">&larr; back to portfolio</a>
+    <p class="doc-eyebrow">Comparison · Roundup</p>
+    <h1>5 Serverless Inference Platforms Worth Watching in 2026</h1>
+    <p class="doc-meta">~11 min read · Writing sample</p>
+
+    <p>The serverless inference market has moved fast enough that a provider list from even a year ago is already out of date. If you're choosing where to run open-weight models in 2026, the short answer is: <strong>there's no single "best" platform — the right pick depends on whether you care most about model breadth, raw price, developer control, or zero cold starts</strong>, because the providers below have deliberately specialized rather than converged on one model.</p>
+
+    <p>Here's a practical look at five platforms worth evaluating, what each is actually optimized for, and how to think about choosing between them.</p>
+
+    <div class="takeaways">
+      <p class="callout-label">Key Takeaways</p>
+      <ul>
+        <li><strong>Featherless</strong> stands out for sheer model catalog breadth and flat-rate pricing — strong for teams that want to experiment across many open-weight models without re-budgeting per model.</li>
+        <li><strong>Together AI</strong> offers an OpenAI-compatible API and per-token pricing that's competitive at moderate volumes, plus dedicated and fine-tuning options as you scale.</li>
+        <li><strong>Replicate</strong> prioritizes zero-deployment-code access to popular models, with predictable output-based pricing on its "Official Models."</li>
+        <li><strong>Hugging Face Inference Endpoints</strong> is the natural choice if your workflow already lives in the HF ecosystem and you want production-grade, instance-based hosting.</li>
+        <li><strong>Modal</strong> suits teams that want full custom code control and are comfortable with per-second GPU billing in exchange for flexibility.</li>
+        <li><strong>Pricing on the same model can spread several-fold across providers</strong> — always benchmark your actual workload, not headline rates.</li>
+      </ul>
+    </div>
+
+    <h2>What "Serverless Inference" Actually Means Here</h2>
+    <p>Every platform in this roundup removes the need to provision and manage your own GPU servers — you call an API (or deploy a function), and the platform handles loading the model, allocating GPU capacity, and scaling. Where they differ is <em>how much of the model catalog is pre-built for you</em>, <em>how pricing is structured</em>, and <em>how much custom code you can run</em>.</p>
+
+    <h2>The Five Platforms</h2>
+
+    <h3>1. Featherless</h3>
+    <p>Featherless positions itself around breadth: a very large catalog of open-weight models (in the thousands), available through a single OpenAI-compatible API, priced on a flat-rate/concurrency basis rather than per token. For teams that want to try multiple open-weight models — or switch between them — without negotiating a new price per model, this removes a lot of friction. The trade-off is the same as any flat-rate model: at very low usage, you may be paying for capacity headroom you're not using.</p>
+
+    <h3>2. Together AI</h3>
+    <p>Together AI offers an OpenAI-compatible serverless API with per-token pricing that varies by model, plus dedicated endpoints (hourly GPU rental) and fine-tuning pipelines for teams that outgrow shared infrastructure. It's a strong fit if your workload is read-heavy on a small number of well-supported open models and you want the option to "graduate" to dedicated capacity without switching providers.</p>
+
+    <h3>3. Replicate</h3>
+    <p>Replicate's strength is removing deployment work entirely for popular models — its "Official Models" program offers fixed, output-based pricing for well-known models with no cold-start billing surprises. This convenience comes at a price premium versus raw GPU-hour costs on other platforms, which makes Replicate a good fit for prototyping and smaller-scale production, less so for high-volume workloads where the per-call premium adds up.</p>
+
+    <h3>4. Hugging Face Inference Endpoints</h3>
+    <p>For teams already working from the Hugging Face Hub, Inference Endpoints offers a more traditional instance-based hosting model — you choose hardware, and HF manages the deployment of (in principle) any model on the Hub. This suits production workloads with consistent traffic where the predictability of instance-based billing is preferable to usage-based pricing.</p>
+
+    <h3>5. Modal</h3>
+    <p>Modal is the choice for teams that want to write and deploy their own Python-based serving code rather than rely on a pre-built model catalog, billed by the second of GPU time used. It offers the most flexibility of the five — at the cost of needing to build and maintain your own serving logic, including managing cold-start behaviour (e.g. caching model weights on persistent storage) yourself.</p>
+
+    <h2>How They Compare</h2>
+
+    <table>
+      <caption>Table 1. Five serverless inference platforms compared</caption>
+      <thead>
+        <tr>
+          <th>Platform</th>
+          <th>Pricing model</th>
+          <th>Model catalog</th>
+          <th>Best for</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>Featherless</strong></td>
+          <td>Flat-rate / concurrency-based</td>
+          <td>Very large (thousands of open-weight models)</td>
+          <td>Experimenting across many models without per-model pricing changes</td>
+        </tr>
+        <tr>
+          <td><strong>Together AI</strong></td>
+          <td>Per-token (serverless), hourly (dedicated)</td>
+          <td>Broad, focused on popular open models</td>
+          <td>Read-heavy workloads with a path to dedicated capacity</td>
+        </tr>
+        <tr>
+          <td><strong>Replicate</strong></td>
+          <td>Output-based (Official Models), per-second (custom)</td>
+          <td>Popular models, zero-deploy access</td>
+          <td>Prototyping and smaller production workloads</td>
+        </tr>
+        <tr>
+          <td><strong>HF Inference Endpoints</strong></td>
+          <td>Instance-based (per-hour)</td>
+          <td>In principle, any model on the Hugging Face Hub</td>
+          <td>Production workloads already living in the HF ecosystem</td>
+        </tr>
+        <tr>
+          <td><strong>Modal</strong></td>
+          <td>Per-second GPU billing</td>
+          <td>Bring-your-own (custom code)</td>
+          <td>Teams wanting full control over serving logic</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="callout">
+      <p class="callout-label">Pro tip</p>
+      <p>Pricing for the same underlying model can vary several-fold across these platforms, and the cheapest option shifts as new models and providers launch. Treat any pricing comparison — including this one — as a starting point for your own benchmark, not a final answer. Re-check before committing to a provider for a production workload.</p>
+    </div>
+
+    <h2>How to Choose</h2>
+    <p>In short, the decision usually comes down to one dominant constraint:</p>
+    <ul>
+      <li><strong>If model variety matters most</strong> (you're experimenting, building a multi-model product, or don't want to re-negotiate pricing per model) — breadth-first, flat-rate platforms like Featherless reduce friction.</li>
+      <li><strong>If you're optimizing for a small number of well-known models at scale</strong> — per-token platforms like Together AI often win on cost predictability as volume grows.</li>
+      <li><strong>If engineering time is your scarcest resource</strong> — zero-deploy platforms like Replicate trade a price premium for speed to production.</li>
+      <li><strong>If you're already deep in the Hugging Face ecosystem</strong> — Inference Endpoints keeps your workflow in one place.</li>
+      <li><strong>If you need full control over serving logic</strong> (custom batching, unusual model formats, multi-step pipelines) — Modal's code-first model is hard to beat, provided you can absorb the ops overhead.</li>
+    </ul>
+
+    <h2>Final Thoughts</h2>
+    <p>None of these platforms are "winning" in an absolute sense — they're specializing. The practical move for most teams isn't picking one provider forever, but matching workload to provider: a breadth-first platform for experimentation, a per-token or dedicated option once a model proves out, and possibly a code-first platform for anything genuinely custom. Build with that flexibility in mind from day one, and revisit the comparison every couple of quarters — this market moves fast enough that it's worth it.</p>
+
+    <p class="spec-note">Unsolicited writing sample created for portfolio purposes. Provider details summarized from public information as of 2026 and may have changed; verify current pricing and features directly with each provider before making decisions.</p>
   </div>
 </body>
 </html>
