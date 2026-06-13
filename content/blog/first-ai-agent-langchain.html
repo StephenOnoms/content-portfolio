@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Building Your First AI Agent with LangChain — Stephen Tiliki</title>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../../styles.css">
+</head>
+<body>
+  <div class="doc-page">
+    <a class="doc-back" href="../../index.html#samples">&larr; back to portfolio</a>
+    <p class="doc-eyebrow">Tutorial · BOFU</p>
+    <h1>Building Your First AI Agent with LangChain</h1>
+    <p class="doc-meta">~14 min read · Writing sample</p>
+
+    <p>If you've called an LLM API and gotten a text response back, you've done the easy 90% of working with language models. The other 10% — letting the model <em>decide what to do next</em>, call a tool, look at the result, and decide again — is what turns an API call into an <strong>agent</strong>. This tutorial builds one from scratch using LangChain: a simple agent that can answer questions a plain LLM call can't, because it can look things up instead of guessing.</p>
+
+    <p>By the end, you'll have a working agent, an understanding of the loop that makes it tick, and — just as importantly — a clear picture of why agents cost more than single calls and how to keep that cost under control.</p>
+
+    <div class="takeaways">
+      <p class="callout-label">Key Takeaways</p>
+      <ul>
+        <li><strong>An agent is an LLM call wrapped in a loop</strong> that can call tools, observe results, and decide whether to call the model again or return a final answer.</li>
+        <li><strong>Tools are just functions</strong> with a description the model uses to decide when to call them — the model doesn't run any code itself.</li>
+        <li><strong>LangChain's role is orchestration</strong>: managing the loop, formatting tool calls and results, and tracking conversation state.</li>
+        <li><strong>Agents can cost significantly more than single calls</strong>, because each loop iteration is a full model call — this is a design constraint, not an afterthought.</li>
+        <li><strong>Memory turns a single agent run into a conversation</strong>, but it also means your token usage grows with conversation length unless you manage it.</li>
+      </ul>
+    </div>
+
+    <h2>What Makes Something an "Agent"</h2>
+    <p>A plain LLM call is: send a prompt, get a response, done. An agent adds a loop around that: send a prompt, let the model decide whether it needs more information, and if so, call a tool to get that information, feed the result back to the model, and repeat — until the model decides it has enough to answer.</p>
+    <p>The model itself doesn't change. What changes is the scaffolding around it: a set of tools the model can choose to call, and a loop that keeps going until the model signals it's done. That scaffolding is what LangChain provides.</p>
+
+    <h2>Prerequisites</h2>
+    <ul>
+      <li>Python 3.10+</li>
+      <li>An API key for an LLM provider with an OpenAI-compatible chat completions endpoint (most open-weight model providers offer this)</li>
+      <li>Basic familiarity with Python functions and virtual environments</li>
+    </ul>
+
+    <h2>Step 1: Project Setup</h2>
+    <p>Create a virtual environment and install the packages:</p>
+    <pre><code>python -m venv .venv
+source .venv/bin/activate  # on Windows: .venv\Scripts\activate
+
+pip install langchain langchain-openai langchain-community</code></pre>
+
+    <p>Set your API key and base URL as environment variables. Using an OpenAI-compatible client means the same code works against any provider that implements that API shape — you only change the base URL and model name:</p>
+    <pre><code>export INFERENCE_API_KEY="your-api-key-here"
+export INFERENCE_BASE_URL="https://your-provider.example/v1"</code></pre>
+
+    <h2>Step 2: Defining a Tool</h2>
+    <p>Tools are plain Python functions. The docstring matters as much as the code — it's what the model reads to decide <em>when</em> to call this tool. Here's a simple example: a tool that looks up a (mocked) exchange rate, something an LLM can't reliably know on its own since rates change daily.</p>
+
+    <pre><code>from langchain_core.tools import tool
+
+@tool
+def get_exchange_rate(currency_pair: str) -> str:
+    """Look up the current exchange rate for a currency pair,
+    e.g. 'USD/EUR'. Use this whenever the user asks about
+    currency conversion or exchange rates."""
+    # In a real implementation, call a live exchange-rate API here.
+    rates = {"USD/EUR": 0.92, "GBP/USD": 1.27, "EUR/GBP": 0.84}
+    rate = rates.get(currency_pair.upper())
+    if rate is None:
+        return f"No rate found for {currency_pair}"
+    return f"1 {currency_pair.split('/')[0]} = {rate} {currency_pair.split('/')[1]}"</code></pre>
+
+    <div class="callout">
+      <p class="callout-label">Pro tip</p>
+      <p>Write tool docstrings the way you'd write documentation for a new team member who can't ask follow-up questions. Vague descriptions ("gets data") lead to the model calling the tool at the wrong times, or not calling it when it should.</p>
+    </div>
+
+    <h2>Step 3: Building the Agent</h2>
+    <p>With a tool defined, the agent itself is a small amount of code — LangChain handles the loop:</p>
+
+    <pre><code>from langchain_openai import ChatOpenAI
+from langchain.agents import create_tool_calling_agent, AgentExecutor
+from langchain_core.prompts import ChatPromptTemplate
+import os
+
+llm = ChatOpenAI(
+    model="your-chosen-open-weight-model",
+    base_url=os.environ["INFERENCE_BASE_URL"],
+    api_key=os.environ["INFERENCE_API_KEY"],
+    temperature=0,
+)
+
+tools = [get_exchange_rate]
+
+prompt = ChatPromptTemplate.from_messages([
+    ("system", "You are a helpful assistant. Use tools when you "
+                "need current information you don't already know."),
+    ("human", "{input}"),
+    ("placeholder", "{agent_scratchpad}"),
+])
+
+agent = create_tool_calling_agent(llm, tools, prompt)
+agent_executor = AgentExecutor(agent=agent, tools=tools, verbose=True)</code></pre>
+
+    <p>The <code>temperature=0</code> setting isn't required, but it makes agent behaviour more consistent while you're testing — useful when you're debugging whether the model is calling tools correctly versus guessing.</p>
+
+    <h2>Step 4: Running and Testing</h2>
+    <pre><code>response = agent_executor.invoke({
+    "input": "If I have 100 US dollars, how many euros is that?"
+})
+print(response["output"])</code></pre>
+
+    <p>With <code>verbose=True</code>, you'll see the agent's reasoning in the console: it recognizes it needs the current exchange rate, calls <code>get_exchange_rate("USD/EUR")</code>, receives the result, and uses it to compute the final answer. Try asking something the tool can't help with (e.g. "what's the capital of France?") — the agent should answer directly without calling the tool, which is exactly the decision-making this setup is meant to demonstrate.</p>
+
+    <figure>
+      <svg viewBox="0 0 700 240" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Diagram of the agent loop: prompt, model decision, tool call, observation, repeat or final answer">
+        <rect width="700" height="240" fill="#12161F"/>
+        <g font-family="IBM Plex Mono, monospace" font-size="11" fill="#E6E9EF">
+          <rect x="20" y="30" width="140" height="50" rx="6" fill="#1A2030" stroke="#232938"/>
+          <text x="90" y="60" text-anchor="middle">User prompt</text>
+
+          <rect x="220" y="30" width="140" height="50" rx="6" fill="#1A2030" stroke="#E3B341"/>
+          <text x="290" y="55" text-anchor="middle" fill="#E3B341">Model decides:</text>
+          <text x="290" y="70" text-anchor="middle" fill="#8B92A5" font-size="9">tool call or final answer?</text>
+
+          <rect x="420" y="30" width="140" height="50" rx="6" fill="#1A2030" stroke="#6E9FE3"/>
+          <text x="490" y="60" text-anchor="middle" fill="#6E9FE3">Tool call</text>
+
+          <rect x="420" y="150" width="140" height="50" rx="6" fill="#1A2030" stroke="#5FB378"/>
+          <text x="490" y="180" text-anchor="middle" fill="#5FB378">Observation (result)</text>
+
+          <rect x="220" y="150" width="140" height="50" rx="6" fill="#E3B341" opacity="0.12" stroke="#E3B341"/>
+          <text x="290" y="180" text-anchor="middle" fill="#E3B341">Back to model</text>
+
+          <rect x="20" y="150" width="140" height="50" rx="6" fill="#1A2030" stroke="#D9789C"/>
+          <text x="90" y="180" text-anchor="middle" fill="#D9789C">Final answer</text>
+
+          <line x1="160" y1="55" x2="220" y2="55" stroke="#5B6376"/>
+          <line x1="360" y1="55" x2="420" y2="55" stroke="#5B6376"/>
+          <text x="380" y="45" font-size="9" fill="#5B6376">needs tool</text>
+
+          <line x1="290" y1="80" x2="290" y2="150" stroke="#5B6376"/>
+          <text x="296" y="115" font-size="9" fill="#5B6376">answer ready</text>
+
+          <line x1="490" y1="80" x2="490" y2="150" stroke="#5B6376"/>
+          <line x1="420" y1="175" x2="360" y2="175" stroke="#5B6376"/>
+          <line x1="220" y1="175" x2="160" y2="175" stroke="#5B6376" stroke-dasharray="4 4"/>
+          <text x="180" y="200" font-size="9" fill="#5B6376">loop</text>
+        </g>
+      </svg>
+      <figcaption>Fig 1. The agent loop: each pass through "Model decides" is a full model call — this is the source of an agent's extra cost versus a single LLM request.</figcaption>
+    </figure>
+
+    <h2>Step 5: Adding Memory</h2>
+    <p>The agent above treats each call independently — it has no memory of previous turns. To build a conversational agent, wrap it with message history:</p>
+
+    <pre><code>from langchain_core.chat_history import InMemoryChatMessageHistory
+from langchain_core.runnables.history import RunnableWithMessageHistory
+
+store = {}
+
+def get_session_history(session_id: str):
+    if session_id not in store:
+        store[session_id] = InMemoryChatMessageHistory()
+    return store[session_id]
+
+agent_with_memory = RunnableWithMessageHistory(
+    agent_executor,
+    get_session_history,
+    input_messages_key="input",
+    history_messages_key="chat_history",
+)
+
+response = agent_with_memory.invoke(
+    {"input": "What about for 50 dollars?"},
+    config={"configurable": {"session_id": "user-123"}},
+)</code></pre>
+
+    <p>Now the agent can resolve "what about for 50 dollars?" using the context from the previous exchange — but notice that this context is now part of every subsequent prompt, which leads directly to the next section.</p>
+
+    <h2>Cost and Reliability Considerations for Agents</h2>
+    <p>Every loop iteration in the diagram above is a full model call — which means an agent that needs three tool calls to answer a question costs roughly three to four times what a single LLM call would (the loop iterations, plus the final response). A few practical implications:</p>
+    <ul>
+      <li><strong>Set a maximum iteration limit.</strong> <code>AgentExecutor</code> supports a <code>max_iterations</code> parameter — set it explicitly. Without a limit, a model stuck in an unproductive loop (calling a tool, not liking the result, calling it again) can run far longer — and cost far more — than intended.</li>
+      <li><strong>Conversation history grows every prompt's token count.</strong> With memory enabled, each new turn re-sends the accumulated history. For long conversations, this becomes the dominant cost driver — consider summarizing or truncating older history rather than sending it in full indefinitely.</li>
+      <li><strong>Tool results count as tokens too.</strong> A tool that returns a large JSON blob or a long document adds all of that to the next prompt. Where possible, have tools return concise, relevant results rather than raw data dumps.</li>
+      <li><strong>This is where the pricing-model choice from the rest of this series matters most.</strong> Agent workloads are inherently more variable than single-call workloads — which tends to push them toward per-token pricing, at least until usage patterns stabilize enough to evaluate flat-rate options.</li>
+    </ul>
+
+    <h2>Common Pitfalls</h2>
+    <ul>
+      <li><strong>Vague tool descriptions.</strong> If the model calls the wrong tool, or no tool when it should, the docstring is usually the first thing to fix — before assuming the model "isn't smart enough."</li>
+      <li><strong>No iteration limit.</strong> This is the single most common cause of unexpectedly high agent costs in early development.</li>
+      <li><strong>Tools that fail silently.</strong> If a tool raises an exception or returns an unhelpful error message, the model may loop trying different approaches. Return clear, descriptive errors from tools, the same way you'd design error messages for a person.</li>
+      <li><strong>Unbounded memory.</strong> A conversational agent that never trims history will have steadily increasing per-turn costs and, eventually, may exceed the model's context window entirely.</li>
+    </ul>
+
+    <h2>FAQ</h2>
+    <h3>Do I need LangChain specifically, or could I build this myself?</h3>
+    <p>You can absolutely build the loop yourself — it's not magic, just a while loop that calls the model, checks for tool calls, executes them, and feeds results back. LangChain's value is in the parts around that loop: standardized tool definitions, prompt formatting, memory integration, and compatibility across providers, which save time especially as an agent grows more complex.</p>
+
+    <h3>How many tools is "too many" for one agent?</h3>
+    <p>There's no fixed number, but every tool description adds to the prompt the model sees on every decision, and more tools mean more opportunities for the model to pick the wrong one. If an agent's tool list is growing large, it's often a sign that it should be split into multiple specialized agents rather than one agent with many tools.</p>
+
+    <h3>Can this agent use a different model for different steps?</h3>
+    <p>Yes — and it's a common cost-optimization technique. A smaller, cheaper model can often handle the "decide which tool to call" step, while a larger model is reserved for generating the final response. LangChain supports configuring different models for different parts of a pipeline, though it adds complexity worth taking on only once cost at scale justifies it.</p>
+
+    <h2>Final Thoughts</h2>
+    <p>An agent is a small idea — let the model decide what to do next, in a loop — wrapped in just enough scaffolding to make that idea reliable: tool definitions, a loop with limits, and (optionally) memory. The code to get a basic agent running is short. The work that actually matters for production is everything in the "cost and reliability" section above — and it's worth thinking about from the first version, not retrofitting after the first surprising bill.</p>
+
+    <p class="spec-note">Unsolicited writing sample created for portfolio purposes. Code samples are illustrative and use a generic OpenAI-compatible provider configuration; refer to your provider's and LangChain's current documentation for exact syntax.</p>
+  </div>
+</body>
+</html>
